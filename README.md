@@ -54,6 +54,7 @@ For each server, `bench.py` reports:
 
 - Linux (resource sampling reads `/proc`).
 - [Bun](https://bun.sh) for the TypeScript servers.
+  Reports identify TypeScript 7.0.2.
 - System libraries used by the OCaml dependency trees — dune builds the OCaml
   side but not C depexts (libev for lwt/dream, gmp for zarith, openssl for
   ssl/tls):

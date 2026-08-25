@@ -1,4 +1,7 @@
 {
+  "runtime_versions": {
+    "typescript": "7.0.2"
+  },
   "defaults": {
     "duration": 30,
     "warmup": 5,

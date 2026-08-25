@@ -75,6 +75,8 @@ def _dune_dependencies(project_path):
 def collect_dependency_versions():
     npm_packages = {}
     bun_versions = set()
+    with open(os.path.join(HERE, "servers.json")) as manifest_file:
+        runtime_versions = json.load(manifest_file).get("runtime_versions", {})
     for package_path in glob.glob(os.path.join(HERE, "servers", "*", "package.json")):
         with open(package_path) as package_file:
             package = json.load(package_file)
@@ -114,7 +116,7 @@ def collect_dependency_versions():
             {"name": "Bun", "versions": sorted(bun_versions)},
             {
                 "name": "TypeScript",
-                "versions": ["Bun transpiler (no tsc dependency)"],
+                "versions": [runtime_versions["typescript"]],
             },
             {"name": "OCaml", "versions": sorted(ocaml_versions)},
         ],
