@@ -25,6 +25,7 @@ lock:
 	  echo "== dune pkg lock: $$s"; \
 	  (cd servers/$$s && dune pkg lock) || exit 1; \
 	done
+	python3 patch-trail-lock.py
 
 # Build every server without running the benchmark.
 build:
@@ -32,6 +33,7 @@ build:
 	  echo "== bun install: $$s"; \
 	  (cd servers/$$s && bun install --frozen-lockfile) || exit 1; \
 	done
+	python3 patch-trail-lock.py
 	@for s in $(OCAML_SERVERS); do \
 	  echo "== dune build: $$s"; \
 	  (cd servers/$$s && ([ -d dune.lock ] || dune pkg lock) && dune build ./main.exe) || exit 1; \

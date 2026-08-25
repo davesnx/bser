@@ -10,7 +10,7 @@
  (synopsis "Hello-world benchmark server: httpun (eio)")
  (depends
   (ocaml
-   (>= 5.1))
+   (= 5.5.0))
   (httpun
    (>= 0.2.0))
   (httpun-eio

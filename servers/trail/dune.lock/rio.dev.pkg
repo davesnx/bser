@@ -1,0 +1,15 @@
+(version dev)
+
+(build
+ (all_platforms ((dune))))
+
+(depends
+ (all_platforms
+  (ocaml dune)))
+
+(source
+ (fetch
+  (url
+   git+https://github.com/riot-ml/rio.git#d8a7d98bd6e655697a61f1708c0d130faacd7dff)))
+
+(dev)

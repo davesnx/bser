@@ -8,6 +8,6 @@
  (synopsis "Hello-world benchmark server: tiny_httpd")
  (depends
   (ocaml
-   (>= 5.1))
+   (= 5.5.0))
   (tiny_httpd
    (>= 0.21))))

@@ -1,0 +1,20 @@
+(version dev)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (system
+      "python3 -c 'from pathlib import Path; p = Path(\"config/cfg_ppx.ml\"); s = p.read_text(); start = s.index(\"    | Pexp_fun (\"); end = s.index(\"    | Pexp_let \", start); replacement = \"    | Pexp_function (params, constraint_, body) ->\\n        let body =\\n          match body with\\n          | Pfunction_body exp ->\\n              Pfunction_body (apply_config_on_expression exp)\\n          | Pfunction_cases (cases, loc, attrs) ->\\n              Pfunction_cases (apply_config_on_cases cases, loc, attrs)\\n        in\\n        Pexp_function (params, constraint_, body)\\n\"; p.write_text(s[:start] + replacement + s[end:])'")
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (ocaml ppxlib spices dune)))
+
+(source
+ (fetch
+  (url
+   git+https://github.com/ocaml-sys/config.ml.git#f850715406b2ea28bbbed76826f0b97c4f933857)))
+
+(dev)

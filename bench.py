@@ -25,7 +25,7 @@ import sys
 import threading
 import time
 
-from report import write_report
+from report import collect_dependency_versions, write_report
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PAGE_SIZE = os.sysconf("SC_PAGE_SIZE")
@@ -597,7 +597,11 @@ def main():
         "cpu_count": os.cpu_count(),
         "uname": " ".join(os.uname()),
     }
-    payload = {"environment": env, "results": results}
+    payload = {
+        "environment": env,
+        "dependencies": collect_dependency_versions(),
+        "results": results,
+    }
     with open(os.path.join(out_dir, "results.json"), "w") as f:
         json.dump(payload, f, indent=2, default=str)
 

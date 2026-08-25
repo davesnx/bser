@@ -56,6 +56,8 @@
       border-bottom: 1px solid var(--line);
     }
 
+    .header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+
     h1 {
       margin: 0.55rem 0 0.75rem;
       max-width: 100%;
@@ -64,6 +66,19 @@
       letter-spacing: -0.035em;
       text-wrap: balance;
     }
+
+    .repo-link {
+      display: inline-flex;
+      flex: none;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .repo-link:hover { color: var(--ink); }
+    .repo-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+    .repo-link svg { width: 1.15rem; height: 1.15rem; fill: currentColor; }
 
     .lede { max-width: 70ch; margin: 0; color: var(--muted); font-size: 1.08rem; text-wrap: pretty; }
 
@@ -161,12 +176,27 @@
     .ocaml-text { color: var(--ocaml); }
     .zero { color: var(--ok); }
 
-    footer { padding-top: 1.5rem; color: var(--faint); font-size: 0.9rem; }
+    footer { padding-top: 2rem; color: var(--faint); font-size: 0.9rem; }
     footer p { max-width: 78ch; }
+
+    .dependency-inventory { margin-bottom: 1.5rem; border-bottom: 1px solid var(--line); }
+    .dependency-inventory h2 { margin-bottom: 0.8rem; color: var(--ink); }
+    .runtime-versions { display: flex; flex-wrap: wrap; gap: 0.35rem 1.5rem; margin: 0 0 1rem; padding: 0; list-style: none; }
+    .runtime-versions strong { color: var(--ink); }
+
+    details { border-top: 1px solid var(--line); }
+    summary { min-height: 2.75rem; padding: 0.65rem 0; color: var(--muted); cursor: pointer; }
+    summary:hover { color: var(--ink); }
+    summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+    .package-list { columns: 3 16rem; margin: 0; padding: 0 0 1rem; list-style: none; }
+    .package-list li { break-inside: avoid; padding: 0.15rem 1rem 0.15rem 0; }
+    .package-list code { color: var(--ink); }
 
     @media (max-width: 700px) {
       .shell { width: min(100% - 1rem, 88rem); padding-top: 0.5rem; }
       header { padding-top: 1rem; }
+      .header-top { flex-direction: column; }
+      .repo-link { order: -1; margin-top: 0; }
       .section-head { align-items: flex-start; flex-direction: column; }
       .bar-row { grid-template-columns: minmax(6.5rem, 8rem) 1fr 5.8rem; gap: 0.45rem; }
       .note { max-width: 42ch; }
@@ -188,7 +218,13 @@
 <body>
   <div class="shell">
     <header>
-      <h1>HTTP server benchmark results</h1>
+      <div class="header-top">
+        <h1>HTTP server benchmark results</h1>
+        <a class="repo-link" href="https://github.com/davesnx/bser" aria-label="View the bser repository on GitHub">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .7a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2.2c-3.4.7-4.1-1.4-4.1-1.4-.6-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.8.1-.8 1.3.1 2 1.3 2 1.3 1.1 2 3 1.4 3.7 1 .1-.8.4-1.4.8-1.7-2.7-.3-5.5-1.3-5.5-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.6.1-3.1 0 0 1-.3 3.2 1.2a11.1 11.1 0 0 1 5.8 0C14.8 5 15.8 5.3 15.8 5.3c.6 1.5.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.8 5.4-5.5 5.7.4.4.8 1.1.8 2.2v3.1c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .7Z"/></svg>
+          <span>davesnx/bser</span>
+        </a>
+      </div>
       <p class="lede" id="lede"></p>
       <ul class="runline" id="runline" aria-label="Benchmark configuration"></ul>
     </header>
@@ -236,6 +272,18 @@
     </main>
 
     <footer>
+      <section class="dependency-inventory" aria-labelledby="dependency-title">
+        <h2 id="dependency-title">Runtime and dependency versions</h2>
+        <ul class="runtime-versions" id="runtime-versions"></ul>
+        <details>
+          <summary id="npm-summary">npm dependencies</summary>
+          <ul class="package-list" id="npm-packages"></ul>
+        </details>
+        <details>
+          <summary id="ocaml-summary">OCaml dependencies</summary>
+          <ul class="package-list" id="ocaml-packages"></ul>
+        </details>
+      </section>
       <p id="source-note"></p>
       <p id="report-date"></p>
     </footer>
@@ -269,6 +317,19 @@
     const fastestOcaml = [...data].filter(item => item.family === "ocaml").sort((a, b) => b.rps - a.rps)[0];
     const lowestP99 = [...data].sort((a, b) => a.p99 - b.p99)[0];
     const totalErrors = data.reduce((sum, item) => sum + item.errors, 0);
+    const dependencies = payload.dependencies || { runtimes: [], npm: [], ocaml: [] };
+
+    function renderPackages(items, listId, summaryId, label) {
+      const list = document.querySelector(listId);
+      items.forEach(item => {
+        const entry = document.createElement("li");
+        const name = document.createElement("code");
+        name.textContent = item.name;
+        entry.append(name, ` ${item.versions.join(", ")}`);
+        list.append(entry);
+      });
+      document.querySelector(summaryId).textContent = `${label} (${items.length})`;
+    }
 
     document.title = `bser benchmark / ${timestamp}`;
     document.querySelector("#lede").textContent = `A one-CPU ${isSmoke ? "smoke " : ""}comparison across ${payload.results.length} Bun, TypeScript framework, and OCaml server implementations. Every successful server returned the same validated 13-byte response.`;
@@ -283,6 +344,15 @@
     }
     document.querySelector("#source-note").innerHTML = `Source: <code>results.json</code>. ${isSmoke ? "This is a pipeline smoke run. " : ""}Use repeated 30-second runs and compare medians before making performance claims.`;
     document.querySelector("#report-date").textContent = reportDate;
+    dependencies.runtimes.forEach(runtime => {
+      const item = document.createElement("li");
+      const name = document.createElement("strong");
+      name.textContent = runtime.name;
+      item.append(name, ` ${runtime.versions.join(", ")}`);
+      document.querySelector("#runtime-versions").append(item);
+    });
+    renderPackages(dependencies.npm, "#npm-packages", "#npm-summary", "npm dependencies");
+    renderPackages(dependencies.ocaml, "#ocaml-packages", "#ocaml-summary", "OCaml dependencies");
 
     const chart = document.querySelector("#chart");
     const rows = document.querySelector("#rows");

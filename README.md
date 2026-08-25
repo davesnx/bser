@@ -80,6 +80,8 @@ For each server, `bench.py` reports:
   Locks are per project. Commit the generated `dune.lock/` directories if you
   want reproducible benchmark builds across machines.
 
+  Every OCaml server is locked to OCaml 5.5.0.
+
 - A load generator, one of (checked in this order):
   - [`oha`](https://github.com/hatoo/oha) — recommended (`cargo install oha`)
   - [`wrk`](https://github.com/wg/wrk)
@@ -145,8 +147,9 @@ next starts. Bun processes always receive `NODE_ENV=production`.
 
 - Every server with third-party dependencies has its own lock and is exercised
   by `make smoke`.
-- Trail currently requires OCaml 5.2 because Riot 0.0.9 does not support OCaml
-  5.3 or newer. The other OCaml locks use the newest compatible compiler.
+- Trail pins Riot commit `310a486` because the latest Riot release restricts
+  OCaml to versions older than 5.3. `patch-trail-lock.py` applies three narrow
+  OCaml 5.5 compatibility fixes to the archived Config, Riot, and Nomad sources.
 - H3 2 is currently a release candidate; its lockfile fixes the tested version.
 
 ## Adding a server

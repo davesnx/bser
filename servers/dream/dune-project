@@ -10,6 +10,6 @@
  (synopsis "Hello-world benchmark server: Dream (lwt)")
  (depends
   (ocaml
-   (>= 5.1))
+   (= 5.5.0))
   (dream
    (>= 1.0.0~alpha7))))

@@ -1,6 +1,6 @@
 (lang package 0.1)
 
-(dependency_hash aa7c0e8b4746d1544e9f1efda00a823a)
+(dependency_hash 4b97ccc31b9a91c99bed37f6c70b8475)
 
 (ocaml ocaml-base-compiler)
 
@@ -12,7 +12,7 @@
   ((source
     https://github.com/ocaml-dune/opam-repository-relocatable.git#d64df82c7e16de819a770cabf4066a06243ed80b))
   ((source
-    https://github.com/ocaml/opam-repository.git#0234c74af6b7c4b2ba5715116c69cbe21e8e8c6d))))
+    https://github.com/ocaml/opam-repository.git#5f52d219348d5ae50cda248ff49942d4be5b0d8d))))
 
 (expanded_solver_variable_bindings
  (variable_values

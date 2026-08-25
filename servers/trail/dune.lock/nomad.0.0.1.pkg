@@ -4,6 +4,8 @@
  (all_platforms
   ((action
     (progn
+     (system
+      "python3 -c 'from pathlib import Path; p = Path(\"nomad/http1.ml\"); s = p.read_text(); assert s.count(\"Config.t\") == 2; p.write_text(\"module Nomad_config = Config\\n\" + s.replace(\"Config.t\", \"Nomad_config.t\"))'")
      (when %{pkg-self:dev} (run dune subst))
      (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
 

@@ -10,7 +10,7 @@
  (synopsis "Hello-world benchmark server: http/af (lwt)")
  (depends
   (ocaml
-   (>= 5.1))
+   (= 5.5.0))
   (httpaf
    (>= 0.7.1))
   (httpaf-lwt-unix

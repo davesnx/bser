@@ -8,6 +8,6 @@
  (synopsis "Hello-world benchmark server: Opium")
  (depends
   (ocaml
-   (>= 5.1))
+   (= 5.5.0))
   (opium
    (= 0.20.0))))

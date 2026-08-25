@@ -1,0 +1,34 @@
+(version dev)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (system
+      "python3 -c 'from pathlib import Path; p = Path(\"packages/riot-runtime/scheduler/scheduler.ml\"); s = p.read_text(); old = \"      | effect ->\\n          Log.trace (fun f ->\\n              f \\\"Process %a: unhandled effect\\\" Pid.pp (Process.pid proc));\\n          k (Reperform effect)\"; new = \"      | unhandled ->\\n          Log.trace (fun f ->\\n              f \\\"Process %a: unhandled effect\\\" Pid.pp (Process.pid proc));\\n          k (Reperform unhandled)\"; assert s.count(old) == 1; p.write_text(s.replace(old, new))'")
+     (system
+      "python3 -c 'from pathlib import Path; p = Path(\"packages/riot-runtime/scheduler/scheduler.ml\"); s = p.read_text(); old = \"        Gluon.Poll.deregister pool.io_scheduler.poll source |> Result.get_ok);\"; new = \"        Gluon.Poll.deregister pool.io_scheduler.poll source |> ignore);\"; assert s.count(old) == 1; p.write_text(s.replace(old, new))'")
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (bytestring
+   config
+   gluon
+   mirage-crypto
+   mirage-crypto-rng
+   mtime
+   ocaml
+   ptime
+   rio
+   telemetry
+   tls
+   uri
+   dune)))
+
+(source
+ (fetch
+  (url
+   git+https://github.com/riot-ml/riot.git#310a4868edaa4f97304ca5398f23d843b8b26eae)))
+
+(dev)

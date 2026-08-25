@@ -8,7 +8,7 @@
  (synopsis "Hello-world benchmark server: Cohttp Lwt")
  (depends
   (ocaml
-   (>= 5.1))
+   (= 5.5.0))
   (cohttp-lwt-unix
    (>= 6.2.2))
   lwt))

@@ -1,16 +1,4 @@
 (version 5.5.0)
 
 (depends
- (choice
-  ((((arch x86_64)
-     (os linux))
-    ((arch arm64)
-     (os linux)))
-   (ocaml-compiler))))
-
-(enabled_on_platforms
- (only
-  ((arch x86_64)
-   (os linux))
-  ((arch arm64)
-   (os linux))))
+ (all_platforms (ocaml-compiler)))

@@ -2,16 +2,25 @@
 
 (name bench_trail)
 
+(pin
+ (url "git+https://github.com/riot-ml/riot.git#310a4868edaa4f97304ca5398f23d843b8b26eae")
+ (package
+  (name riot)))
+
+(pin
+ (url "git+https://github.com/ocaml-sys/config.ml.git#f850715406b2ea28bbbed76826f0b97c4f933857")
+ (package
+  (name config)))
+
 (package
  (name bench_trail)
  (allow_empty)
  (synopsis "Hello-world benchmark server: Trail with Nomad")
  (depends
   (ocaml
-   (= 5.2.1))
+   (= 5.5.0))
   (trail
    (= 0.0.1))
   (nomad
    (= 0.0.1))
-  (riot
-   (= 0.0.9))))
+  riot))

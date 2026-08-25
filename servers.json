@@ -82,7 +82,7 @@
       "name": "trail",
       "runtime": "OCaml + Trail/Nomad (riot)",
       "cwd": "servers/trail",
-      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "build": "([ -d dune.lock ] || dune pkg lock) && python3 ../../patch-trail-lock.py && dune build ./main.exe",
       "run": "_build/default/main.exe"
     },
     {

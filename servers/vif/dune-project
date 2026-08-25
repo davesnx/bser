@@ -8,6 +8,6 @@
  (synopsis "Hello-world benchmark server: Vif")
  (depends
   (ocaml
-   (>= 5.3))
+   (= 5.5.0))
   (vif
    (= 0.0.1~beta4))))
