@@ -37,6 +37,14 @@ For each server, `bench.py` reports:
 
 - Linux (resource sampling reads `/proc`).
 - [Bun](https://bun.sh) for the Elysia server.
+- System libraries used by the OCaml dependency trees — dune builds the OCaml
+  side but not C depexts (libev for lwt/dream, gmp for zarith, openssl for
+  ssl/tls):
+
+  ```sh
+  sudo apt-get install -y libev-dev libssl-dev libgmp-dev pkg-config
+  ```
+
 - dune >= 3.20 with package management for the OCaml servers — easiest via
   the standalone dune binary (no opam required):
 
@@ -97,22 +105,6 @@ Each run writes to `results/<timestamp>/`:
 Servers run one at a time on the same port; each is built, started, warmed
 up, measured, and torn down before the next starts.
 
-## CI
-
-`.github/workflows/benchmark.yml` runs the whole suite on every push to
-`main` and every pull request (active once this project is the root of its
-own repository), plus on demand from the Actions tab, where `duration` and
-`connections` are tunable inputs. The job installs Bun, standalone dune, and
-`wrk`, caches the per-server `dune.lock` dirs and dune's package cache (only
-the first run builds compilers), then runs `bench.py --fail-on-error` so a
-server that fails to build, start, or respond turns the run red. The results
-table lands in the job's step summary and the full `results/` directory is
-uploaded as an artifact.
-
-CI numbers come from small shared runners where the load generator competes
-with the server for cores — use them for regressions and smoke checks, not
-as absolute comparisons.
-
 ## Methodology notes
 
 - Run on an idle machine; close other workloads. Results from laptops with
@@ -130,13 +122,13 @@ as absolute comparisons.
 
 ## Status / caveats
 
-- The Elysia server and the harness were run and verified.
-- The OCaml servers follow each library's documented server API (see the
-  version bounds in each server's `dune-project`) but were authored in an
-  environment without opam-repository access, so run `dune build` locally; small
-  adjustments may be needed if your library versions moved. httpcats' server
-  API in particular is young — its handler receives ``` `V1 ``` (`H1.Reqd.t`)
-  for cleartext http/1.1.
+- The Elysia server, the httpaf server, and the harness (lock, build, run,
+  measure) are verified end to end.
+- The dream, httpcats, and httpun-eio servers lock and build their dependency
+  universes; their handler code targets the APIs current at lock time
+  (httpcats' handler receives `flow -> conn -> reqd` with ``` `V1 ```
+  carrying an `H1.Reqd.t` for cleartext http/1.1; httpun-eio's request
+  handler receives a gluten-wrapped `Reqd.t Gluten.Reqd.t`).
 
 ## Adding a server
 

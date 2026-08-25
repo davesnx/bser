@@ -12,7 +12,7 @@ let headers =
       ("content-type", "text/plain");
     ]
 
-let request_handler (_ : Eio.Net.Sockaddr.stream) reqd =
+let request_handler (_ : Eio.Net.Sockaddr.stream) { Gluten.Reqd.reqd; _ } =
   Reqd.respond_with_string reqd (Response.create ~headers `OK) text
 
 let error_handler (_ : Eio.Net.Sockaddr.stream) ?request:_ error start_response

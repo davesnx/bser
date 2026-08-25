@@ -227,7 +227,7 @@ def _wrk_bytes(value):
 
 def parse_wrk(output):
     def search(pattern, default=""):
-        m = re.search(pattern, output)
+        m = re.search(pattern, output, re.M)
         return m.group(1) if m else default
 
     latency = {}

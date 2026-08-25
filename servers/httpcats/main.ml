@@ -6,7 +6,7 @@
 
 let text = "Hello, World!"
 
-let handler _socket reqd =
+let handler _flow _conn reqd =
   match reqd with
   | `V2 _ -> assert false (* h2 requires TLS; this server is cleartext *)
   | `V1 reqd ->
