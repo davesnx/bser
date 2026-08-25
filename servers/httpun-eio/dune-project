@@ -1,0 +1,21 @@
+(lang dune 3.20)
+
+(name bench_httpun_eio)
+
+; Standalone dune project: `dune pkg lock` resolves dependencies into this
+; project's own dune.lock/, independent of the other benchmark servers.
+(package
+ (name bench_httpun_eio)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: httpun (eio)")
+ (depends
+  (ocaml
+   (>= 5.1))
+  (httpun
+   (>= 0.2.0))
+  (httpun-eio
+   (>= 0.2.0))
+  (eio
+   (>= 1.1))
+  (eio_main
+   (>= 1.1))))

@@ -1,0 +1,5 @@
+node_modules/
+_build/
+results/
+*.install
+__pycache__/

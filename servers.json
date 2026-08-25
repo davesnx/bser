@@ -1,0 +1,47 @@
+{
+  "defaults": {
+    "duration": 30,
+    "warmup": 5,
+    "connections": 64,
+    "threads": 4,
+    "port": 8080,
+    "path": "/"
+  },
+  "servers": [
+    {
+      "name": "elysia-bun",
+      "runtime": "Bun + Elysia (TypeScript)",
+      "cwd": "servers/elysia-bun",
+      "build": "bun install",
+      "run": "bun src/index.ts"
+    },
+    {
+      "name": "dream",
+      "runtime": "OCaml + Dream (lwt)",
+      "cwd": "servers/dream",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "httpcats",
+      "runtime": "OCaml + httpcats (miou)",
+      "cwd": "servers/httpcats",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "httpun-eio",
+      "runtime": "OCaml + httpun (eio)",
+      "cwd": "servers/httpun-eio",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "httpaf",
+      "runtime": "OCaml + http/af (lwt)",
+      "cwd": "servers/httpaf",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+(lang dune 3.20)
+
+(name bench_httpaf)
+
+; Standalone dune project: `dune pkg lock` resolves dependencies into this
+; project's own dune.lock/, independent of the other benchmark servers.
+(package
+ (name bench_httpaf)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: http/af (lwt)")
+ (depends
+  (ocaml
+   (>= 5.1))
+  (httpaf
+   (>= 0.7.1))
+  (httpaf-lwt-unix
+   (>= 0.7.1))
+  lwt))

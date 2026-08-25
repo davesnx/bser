@@ -1,0 +1,15 @@
+(lang dune 3.20)
+
+(name bench_dream)
+
+; Standalone dune project: `dune pkg lock` resolves dependencies into this
+; project's own dune.lock/, independent of the other benchmark servers.
+(package
+ (name bench_dream)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: Dream (lwt)")
+ (depends
+  (ocaml
+   (>= 5.1))
+  (dream
+   (>= 1.0.0~alpha7))))
