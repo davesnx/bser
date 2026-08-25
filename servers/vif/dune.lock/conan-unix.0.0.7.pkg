@@ -1,0 +1,26 @@
+(version 0.0.7)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs})
+     (run
+      dune
+      install
+      -p
+      %{pkg-self:name}
+      --create-install-files
+      %{pkg-self:name}))))))
+
+(depends
+ (all_platforms
+  (ocaml base-unix cachet conan dune)))
+
+(source
+ (fetch
+  (url
+   https://github.com/mirage/conan/releases/download/v0.0.7/conan-0.0.7.tbz)
+  (checksum
+   sha512=38024e10308a92e8487ace257e18a968e1cc7ea1991e6150c10ae3232af4812fe96583ea36f54cc6e42cf91a2f04eec1dae323dfda64268469db7769d38ef2cc)))

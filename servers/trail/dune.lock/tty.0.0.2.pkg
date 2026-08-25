@@ -1,0 +1,18 @@
+(version 0.0.2)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (dune ocaml uutf)))
+
+(source
+ (fetch
+  (url https://github.com/leostera/tty/releases/download/0.0.2/tty-0.0.2.tbz)
+  (checksum
+   sha512=40667f04fe390da339e1b2e818379e0e477486d083a278903a5005d67f406d06d9d65ed4836fe8c69a9e6c1ca9de83f197ba85e2ec53e675e1c2105024268fb3)))

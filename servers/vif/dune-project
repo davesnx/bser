@@ -1,0 +1,13 @@
+(lang dune 3.20)
+
+(name bench_vif)
+
+(package
+ (name bench_vif)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: Vif")
+ (depends
+  (ocaml
+   (>= 5.3))
+  (vif
+   (= 0.0.1~beta4))))

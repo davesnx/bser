@@ -1,0 +1,13 @@
+(lang dune 3.20)
+
+(name bench_opium)
+
+(package
+ (name bench_opium)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: Opium")
+ (depends
+  (ocaml
+   (>= 5.1))
+  (opium
+   (= 0.20.0))))

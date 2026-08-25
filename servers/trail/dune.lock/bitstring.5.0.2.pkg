@@ -1,0 +1,18 @@
+(version 5.0.2)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (dune ocaml stdlib-shims)))
+
+(source
+ (fetch
+  (url https://github.com/xguerin/bitstring/archive/refs/tags/v5.0.2.tar.gz)
+  (checksum
+   sha512=49834e427038bf8fe1cbd9bb4493429b10ea93f170080a317818c518d9cf0baf5e5a596b6e9b8e239c94127298a7e97e226544829b5b34a77231f43e460e95e2)))

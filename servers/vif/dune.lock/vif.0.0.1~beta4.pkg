@@ -1,0 +1,39 @@
+(version 0.0.1~beta4)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs}))))))
+
+(depends
+ (all_platforms
+  (ocaml
+   dune
+   uri
+   fmt
+   bos
+   logs
+   fpath
+   bytesrw
+   flux
+   fluxt
+   jsont
+   cmdliner
+   httpcats
+   tyre
+   mirage-crypto-rng
+   decompress
+   conan-unix
+   conan-database
+   multipart_form-miou
+   hmap
+   tyxml)))
+
+(source
+ (fetch
+  (url
+   https://github.com/robur-coop/vif/releases/download/v0.0.1_beta4/vif-0.0.1.beta4.tbz)
+  (checksum
+   sha512=1ff5dddecf25b41986ea629bda336a990800db8410498682bf96af2b1afab74ae57172ee8d41087f131c9ceeb3255c96351668664e36c6815a249157afd05a5d)))

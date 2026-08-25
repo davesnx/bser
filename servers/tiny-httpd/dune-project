@@ -1,0 +1,13 @@
+(lang dune 3.24)
+
+(name bench_tiny_httpd)
+
+(package
+ (name bench_tiny_httpd)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: tiny_httpd")
+ (depends
+  (ocaml
+   (>= 5.1))
+  (tiny_httpd
+   (>= 0.21))))

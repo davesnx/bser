@@ -12,13 +12,76 @@
       "name": "elysia-bun",
       "runtime": "Bun + Elysia (TypeScript)",
       "cwd": "servers/elysia-bun",
-      "build": "bun install",
+      "build": "bun install --frozen-lockfile",
+      "run": "bun src/index.ts"
+    },
+    {
+      "name": "bun-native",
+      "runtime": "Bun.serve (TypeScript)",
+      "cwd": "servers/bun-native",
+      "build": "bun install --frozen-lockfile",
+      "run": "bun src/index.ts"
+    },
+    {
+      "name": "hono-bun",
+      "runtime": "Bun + Hono (TypeScript)",
+      "cwd": "servers/hono-bun",
+      "build": "bun install --frozen-lockfile",
+      "run": "bun src/index.ts"
+    },
+    {
+      "name": "h3-bun",
+      "runtime": "Bun + H3 (TypeScript)",
+      "cwd": "servers/h3-bun",
+      "build": "bun install --frozen-lockfile",
+      "run": "bun src/index.ts"
+    },
+    {
+      "name": "node-http-bun",
+      "runtime": "Bun + node:http (TypeScript)",
+      "cwd": "servers/node-http-bun",
+      "build": "bun install --frozen-lockfile",
+      "run": "bun src/index.ts"
+    },
+    {
+      "name": "express-bun",
+      "runtime": "Bun + Express (TypeScript)",
+      "cwd": "servers/express-bun",
+      "build": "bun install --frozen-lockfile",
+      "run": "bun src/index.ts"
+    },
+    {
+      "name": "fastify-bun",
+      "runtime": "Bun + Fastify (TypeScript)",
+      "cwd": "servers/fastify-bun",
+      "build": "bun install --frozen-lockfile",
       "run": "bun src/index.ts"
     },
     {
       "name": "dream",
       "runtime": "OCaml + Dream (lwt)",
       "cwd": "servers/dream",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "opium",
+      "runtime": "OCaml + Opium (http/af + lwt)",
+      "cwd": "servers/opium",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "vif",
+      "runtime": "OCaml + Vif (httpcats + miou)",
+      "cwd": "servers/vif",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "trail",
+      "runtime": "OCaml + Trail/Nomad (riot)",
+      "cwd": "servers/trail",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
       "run": "_build/default/main.exe"
     },
@@ -30,6 +93,20 @@
       "run": "_build/default/main.exe"
     },
     {
+      "name": "cohttp-eio",
+      "runtime": "OCaml + Cohttp (eio)",
+      "cwd": "servers/cohttp-eio",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "cohttp-lwt",
+      "runtime": "OCaml + Cohttp (lwt)",
+      "cwd": "servers/cohttp-lwt",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
       "name": "httpun-eio",
       "runtime": "OCaml + httpun (eio)",
       "cwd": "servers/httpun-eio",
@@ -37,9 +114,23 @@
       "run": "_build/default/main.exe"
     },
     {
+      "name": "httpun-lwt",
+      "runtime": "OCaml + httpun (lwt)",
+      "cwd": "servers/httpun-lwt",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
       "name": "httpaf",
       "runtime": "OCaml + http/af (lwt)",
       "cwd": "servers/httpaf",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "tiny-httpd",
+      "runtime": "OCaml + tiny_httpd (threads)",
+      "cwd": "servers/tiny-httpd",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
       "run": "_build/default/main.exe"
     }

@@ -2,16 +2,33 @@
 
 One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 
-| Server       | Stack                                   | Source               |
-| ------------ | --------------------------------------- | -------------------- |
-| `elysia-bun` | [Elysia](https://elysiajs.com) on Bun   | `servers/elysia-bun` |
-| `dream`      | OCaml [Dream](https://aantron.github.io/dream) (lwt) | `servers/dream`      |
-| `httpcats`   | OCaml [httpcats](https://github.com/robur-coop/httpcats) (miou) | `servers/httpcats`   |
-| `httpun-eio` | OCaml [httpun](https://github.com/anmonteiro/httpun) + eio      | `servers/httpun-eio` |
-| `httpaf`     | OCaml [http/af](https://github.com/inhabitedtype/httpaf) (lwt)  | `servers/httpaf`     |
+[View the latest benchmark report.](https://davesnx.github.io/bser/)
+
+| Server | Stack |
+| --- | --- |
+| `elysia-bun` | [Elysia](https://elysiajs.com) on Bun |
+| `bun-native` | Native [`Bun.serve`](https://bun.com/docs/runtime/http/server) |
+| `hono-bun` | [Hono](https://hono.dev) on Bun |
+| `h3-bun` | [H3](https://h3.dev) on Bun |
+| `node-http-bun` | Bun's `node:http` compatibility layer |
+| `express-bun` | [Express](https://expressjs.com) on Bun |
+| `fastify-bun` | [Fastify](https://fastify.dev) on Bun |
+| `dream` | OCaml [Dream](https://aantron.github.io/dream) on Lwt |
+| `opium` | OCaml [Opium](https://github.com/rgrinberg/opium) on http/af and Lwt |
+| `vif` | OCaml [Vif](https://robur-coop.github.io/vif/) on httpcats and Miou |
+| `trail` | OCaml [Trail](https://github.com/leostera/trail), Nomad, and Riot |
+| `httpcats` | OCaml [httpcats](https://github.com/robur-coop/httpcats) on Miou |
+| `cohttp-eio` | OCaml [Cohttp](https://github.com/mirage/ocaml-cohttp) on Eio |
+| `cohttp-lwt` | OCaml Cohttp on Lwt |
+| `httpun-eio` | OCaml [httpun](https://github.com/anmonteiro/httpun) on Eio |
+| `httpun-lwt` | OCaml httpun on Lwt |
+| `httpaf` | OCaml [http/af](https://github.com/inhabitedtype/httpaf) on Lwt |
+| `tiny-httpd` | OCaml [tiny_httpd](https://github.com/c-cube/tiny-httpd) with system threads |
 
 Every server does the same thing: `GET /` → `200 text/plain "Hello, World!"`,
-listening on `$PORT` (default 8080), single process, no logging middleware.
+listening on `$PORT` (default 8080), single process, no logging middleware. The
+harness validates that contract before warmup and pins the server process tree
+to one logical CPU.
 
 Each OCaml server is its **own standalone dune project** (with its own
 `dune-project` and `dune-workspace`) using [dune package
@@ -30,13 +47,13 @@ For each server, `bench.py` reports:
 - **Peak / avg memory** — RSS of the whole server process tree, sampled from
   `/proc` every 200 ms during the measurement window.
 - **CPU** — CPU time consumed by the server process tree during the window,
-  reported as a percentage of one core (can exceed 100 on multicore runtimes).
+  reported as a percentage of one core.
 - **Errors** — socket errors, timeouts, and non-2xx responses.
 
 ## Prerequisites
 
 - Linux (resource sampling reads `/proc`).
-- [Bun](https://bun.sh) for the Elysia server.
+- [Bun](https://bun.sh) for the TypeScript servers.
 - System libraries used by the OCaml dependency trees — dune builds the OCaml
   side but not C depexts (libev for lwt/dream, gmp for zarith, openssl for
   ssl/tls):
@@ -45,7 +62,7 @@ For each server, `bench.py` reports:
   sudo apt-get install -y libev-dev libssl-dev libgmp-dev pkg-config
   ```
 
-- dune >= 3.20 with package management for the OCaml servers — easiest via
+- dune >= 3.24 with package management for the OCaml servers — easiest via
   the standalone dune binary (no opam required):
 
   ```sh
@@ -71,7 +88,7 @@ For each server, `bench.py` reports:
 
 ## Running
 
-Start with a single OCaml server before bringing up all four — `make first`
+Start with a single OCaml server before bringing up the full matrix — `make first`
 locks and builds **dream** only, then runs a short benchmark of it against
 the Bun baseline:
 
@@ -93,6 +110,7 @@ Or drive `bench.py` directly:
 ```sh
 python3 bench.py --duration 60 --connections 256 --tool oha
 python3 bench.py --servers dream,httpaf --no-build
+python3 bench.py --server-cpu 2 --servers bun-native,httpaf
 python3 bench.py --list
 ```
 
@@ -100,10 +118,12 @@ Each run writes to `results/<timestamp>/`:
 
 - `results.json` — full metrics, resource samples, config, and environment,
 - `results.md` — a ready-to-paste Markdown table,
+- `report.html` — a standalone interactive report,
 - `<server>.log` — stdout/stderr of each server.
 
-Servers run one at a time on the same port; each is built, started, warmed
-up, measured, and torn down before the next starts.
+Servers run one at a time on the same port; each is built, pinned to one logical
+CPU, started, contract-checked, warmed up, measured, and torn down before the
+next starts. Bun processes always receive `NODE_ENV=production`.
 
 ## Methodology notes
 
@@ -113,22 +133,21 @@ up, measured, and torn down before the next starts.
 - Load generator and server share the machine here, so they compete for
   cores. For serious numbers, run the generator from a second machine against
   the server's IP (start servers by hand with `PORT=8080 <run cmd>`).
-- Consider pinning the server (`taskset -c 0-3 ...`) and the generator to
-  disjoint cores to reduce interference; you can encode this by prefixing the
-  `run` command in `servers.json`.
-- All servers are intentionally single-process. Multicore setups (Bun
+- The harness pins every server to one logical CPU. Use `--server-cpu` to select
+  it. The harness pins the load generator to separate logical CPUs when the
+  machine has them. The processes still share caches and memory bandwidth; use
+  a second machine for rigorous measurements.
+- All servers are intentionally single-process and single-CPU. Multicore setups (Bun
   `reusePort` clusters, eio/miou multi-domain accept loops) are interesting
   follow-ups but a different benchmark.
 
 ## Status / caveats
 
-- The Elysia server, the httpaf server, and the harness (lock, build, run,
-  measure) are verified end to end.
-- The dream, httpcats, and httpun-eio servers lock and build their dependency
-  universes; their handler code targets the APIs current at lock time
-  (httpcats' handler receives `flow -> conn -> reqd` with ``` `V1 ```
-  carrying an `H1.Reqd.t` for cleartext http/1.1; httpun-eio's request
-  handler receives a gluten-wrapped `Reqd.t Gluten.Reqd.t`).
+- Every server with third-party dependencies has its own lock and is exercised
+  by `make smoke`.
+- Trail currently requires OCaml 5.2 because Riot 0.0.9 does not support OCaml
+  5.3 or newer. The other OCaml locks use the newest compatible compiler.
+- H3 2 is currently a release candidate; its lockfile fixes the tested version.
 
 ## Adding a server
 

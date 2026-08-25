@@ -6,13 +6,14 @@ For each server declared in servers.json this script:
   2. starts it with PORT set and waits for the socket to accept connections,
   3. runs a warmup load, then a measured load with oha, wrk, or autocannon,
   4. samples RSS and CPU of the whole server process tree while it runs,
-  5. tears the server down and writes results (JSON + Markdown) to results/.
+  5. tears the server down and writes JSON, Markdown, and HTML to results/.
 
 Only the Linux /proc filesystem is used for resource sampling.
 """
 
 import argparse
 import datetime
+import http.client
 import json
 import os
 import re
@@ -24,9 +25,12 @@ import sys
 import threading
 import time
 
+from report import write_report
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 PAGE_SIZE = os.sysconf("SC_PAGE_SIZE")
 CLK_TCK = os.sysconf("SC_CLK_TCK")
+EXPECTED_BODY = b"Hello, World!"
 
 
 # ---------------------------------------------------------------------------
@@ -95,14 +99,14 @@ class ResourceSampler(threading.Thread):
         super().__init__(daemon=True)
         self.root_pid = root_pid
         self.interval = interval
-        self._stop = threading.Event()
+        self._stop_event = threading.Event()
         self._lock = threading.Lock()
         self.peak_rss = 0
         self.samples = []
         self.cpu = 0.0
 
     def run(self):
-        while not self._stop.is_set():
+        while not self._stop_event.is_set():
             pids = proc_tree(self.root_pid)
             rss = sum(rss_bytes(p) for p in pids)
             cpu = sum(cpu_seconds(p) for p in pids)
@@ -110,7 +114,7 @@ class ResourceSampler(threading.Thread):
                 self.samples.append(rss)
                 self.peak_rss = max(self.peak_rss, rss)
                 self.cpu = max(self.cpu, cpu)
-            self._stop.wait(self.interval)
+            self._stop_event.wait(self.interval)
 
     def snapshot(self):
         with self._lock:
@@ -123,7 +127,7 @@ class ResourceSampler(threading.Thread):
             self.peak_rss = 0
 
     def stop(self):
-        self._stop.set()
+        self._stop_event.set()
 
 
 # ---------------------------------------------------------------------------
@@ -161,7 +165,7 @@ def resolve_tool(name):
     return [name]
 
 
-def run_load(tool, url, duration, connections, threads, capture=True):
+def run_load(tool, url, duration, connections, threads, load_cpus, capture=True):
     """Run one load; returns normalized metrics (None when capture=False)."""
     kind = "autocannon" if "autocannon" in tool[-1] else tool[0]
     if kind == "oha":
@@ -170,6 +174,9 @@ def run_load(tool, url, duration, connections, threads, capture=True):
         cmd = tool + [f"-t{threads}", f"-c{connections}", f"-d{duration}s", "--latency", url]
     else:  # autocannon
         cmd = tool + ["-c", str(connections), "-d", str(duration), "-j", url]
+
+    cpu_list = ",".join(str(cpu) for cpu in load_cpus)
+    cmd = ["taskset", "--cpu-list", cpu_list, *cmd]
 
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
@@ -305,6 +312,32 @@ def wait_port_free(host, port, timeout=15):
     return False
 
 
+def validate_response(host, port, path):
+    connection = http.client.HTTPConnection(host, port, timeout=5)
+    try:
+        connection.request("GET", path)
+        response = connection.getresponse()
+        body = response.read()
+    finally:
+        connection.close()
+
+    content_type = response.getheader("content-type", "").split(";", 1)[0].strip()
+    content_length = response.getheader("content-length")
+    problems = []
+    if response.status != 200:
+        problems.append(f"status {response.status}, expected 200")
+    if content_type.lower() != "text/plain":
+        problems.append(f"content-type {content_type!r}, expected 'text/plain'")
+    if content_length != str(len(EXPECTED_BODY)):
+        problems.append(
+            f"content-length {content_length!r}, expected {len(EXPECTED_BODY)!r}"
+        )
+    if body != EXPECTED_BODY:
+        problems.append(f"body {body!r}, expected {EXPECTED_BODY!r}")
+    if problems:
+        raise RuntimeError("; ".join(problems))
+
+
 def stop_process(proc):
     if proc.poll() is not None:
         return
@@ -361,21 +394,29 @@ def bench_server(server, cfg, tool, log_dir, no_build):
 
     log_path = os.path.join(log_dir, f"{name}.log")
     log = open(log_path, "w")
+    run_command = server["run"]
+    server_cpu = cfg["server_cpu"]
     proc = subprocess.Popen(
-        server["run"],
-        shell=True,
+        ["taskset", "--cpu-list", str(server_cpu), "sh", "-c", run_command],
         cwd=cwd,
-        env={**os.environ, "PORT": str(port)},
+        env={**os.environ, "NODE_ENV": "production", "PORT": str(port)},
         stdout=log,
         stderr=subprocess.STDOUT,
         start_new_session=True,
     )
     sampler = None
     try:
-        print(f"  starting: {server['run']} (pid {proc.pid})")
+        print(f"  starting on CPU {server_cpu}: {run_command} (pid {proc.pid})")
         if not wait_port("127.0.0.1", port, timeout=60, proc=proc):
             result.update(status="start_failed", error=tail(log_path))
             print(f"  START FAILED for {name}; log tail:\n{tail(log_path)}")
+            return result
+
+        try:
+            validate_response("127.0.0.1", port, cfg["path"])
+        except RuntimeError as exc:
+            result.update(status="contract_failed", error=str(exc))
+            print(f"  CONTRACT FAILED for {name}: {exc}")
             return result
 
         sampler = ResourceSampler(proc.pid)
@@ -383,7 +424,15 @@ def bench_server(server, cfg, tool, log_dir, no_build):
 
         if cfg["warmup"] > 0:
             print(f"  warmup: {cfg['warmup']}s")
-            run_load(tool, url, cfg["warmup"], cfg["connections"], cfg["threads"], capture=False)
+            run_load(
+                tool,
+                url,
+                cfg["warmup"],
+                cfg["connections"],
+                cfg["threads"],
+                cfg["load_cpus"],
+                capture=False,
+            )
 
         sampler.reset_window()
         cpu_before = sampler.snapshot()["cpu"]
@@ -392,7 +441,14 @@ def bench_server(server, cfg, tool, log_dir, no_build):
             f"({'/'.join(tool)})"
         )
         started = time.monotonic()
-        metrics = run_load(tool, url, cfg["duration"], cfg["connections"], cfg["threads"])
+        metrics = run_load(
+            tool,
+            url,
+            cfg["duration"],
+            cfg["connections"],
+            cfg["threads"],
+            cfg["load_cpus"],
+        )
         elapsed = time.monotonic() - started
 
         res = sampler.snapshot()
@@ -417,6 +473,7 @@ def bench_server(server, cfg, tool, log_dir, no_build):
     finally:
         if sampler:
             sampler.stop()
+            sampler.join(timeout=2)
         stop_process(proc)
         log.close()
         if not wait_port_free("127.0.0.1", port):
@@ -479,6 +536,7 @@ def main():
     parser.add_argument("--connections", type=int, help="concurrent connections")
     parser.add_argument("--threads", type=int, help="load generator threads (wrk)")
     parser.add_argument("--port", type=int, help="port servers listen on")
+    parser.add_argument("--server-cpu", type=int, help="logical CPU for the server")
     parser.add_argument(
         "--tool", default="auto", choices=["auto", "oha", "wrk", "autocannon"]
     )
@@ -500,10 +558,22 @@ def main():
         if value is not None:
             cfg[key] = value
 
+    available_cpus = sorted(os.sched_getaffinity(0))
+    server_cpu = args.server_cpu if args.server_cpu is not None else available_cpus[0]
+    if server_cpu not in available_cpus:
+        parser.error(
+            f"server CPU {server_cpu} is unavailable; choose one of {available_cpus}"
+        )
+    if not shutil.which("taskset"):
+        parser.error("taskset is required to pin servers to one logical CPU")
+    cfg["server_cpu"] = server_cpu
+    load_cpus = [cpu for cpu in available_cpus if cpu != server_cpu]
+    cfg["load_cpus"] = (load_cpus or [server_cpu])[: max(1, cfg["threads"])]
+
     servers = manifest["servers"]
     if args.list:
         for s in servers:
-            print(f"{s['name']:<12} {s.get('runtime', '')}")
+            print(f"{s['name']:<14} {s.get('runtime', '')}")
         return
     if args.servers:
         wanted = [w.strip() for w in args.servers.split(",")]
@@ -527,12 +597,14 @@ def main():
         "cpu_count": os.cpu_count(),
         "uname": " ".join(os.uname()),
     }
+    payload = {"environment": env, "results": results}
     with open(os.path.join(out_dir, "results.json"), "w") as f:
-        json.dump({"environment": env, "results": results}, f, indent=2, default=str)
+        json.dump(payload, f, indent=2, default=str)
 
     md, txt = fmt_table(results, cfg, tool)
     with open(os.path.join(out_dir, "results.md"), "w") as f:
         f.write(f"# Hello-world benchmark — {stamp}\n\n{md}\n")
+    write_report(payload, os.path.join(out_dir, "report.html"))
 
     print(f"\n{txt}\n\nResults written to {out_dir}")
 

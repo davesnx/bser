@@ -1,0 +1,17 @@
+(lang dune 3.20)
+
+(name bench_trail)
+
+(package
+ (name bench_trail)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: Trail with Nomad")
+ (depends
+  (ocaml
+   (= 5.2.1))
+  (trail
+   (= 0.0.1))
+  (nomad
+   (= 0.0.1))
+  (riot
+   (= 0.0.9))))

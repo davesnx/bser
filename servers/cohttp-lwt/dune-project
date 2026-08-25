@@ -1,0 +1,14 @@
+(lang dune 3.24)
+
+(name bench_cohttp_lwt)
+
+(package
+ (name bench_cohttp_lwt)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: Cohttp Lwt")
+ (depends
+  (ocaml
+   (>= 5.1))
+  (cohttp-lwt-unix
+   (>= 6.2.2))
+  lwt))

@@ -1,0 +1,19 @@
+(version 0.0.5)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (dune ocaml riot telemetry)))
+
+(source
+ (fetch
+  (url
+   https://github.com/suri-framework/atacama/releases/download/0.0.5/atacama-0.0.5.tbz)
+  (checksum
+   sha512=7de1100df32120f3a9541183569fb3d48525e70c981dbac1aa1760d3b78a39c41eb3f0bbe5be7e7ff639dfbf421b5f7c3f0e467199dc7d263a16a0ca7549eec8)))

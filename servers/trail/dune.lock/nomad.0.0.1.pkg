@@ -1,0 +1,30 @@
+(version 0.0.1)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (dune
+   atacama
+   bitstring
+   decompress
+   digestif
+   httpaf
+   ocaml
+   ppx_bitstring
+   riot
+   telemetry
+   trail
+   uutf)))
+
+(source
+ (fetch
+  (url
+   https://github.com/suri-framework/nomad/releases/download/0.0.1/nomad-0.0.1.tbz)
+  (checksum
+   sha512=4c80185838e2d8e5b410c3b986f8f0d237b6aa8f67cfbaa2e35f54af3706c927056fb18bcbd73a3ae4a447f43939686b2f5068df3beffcfdfe0f104196f9cd84)))

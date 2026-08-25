@@ -1,0 +1,19 @@
+(version 0.21)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (dune seq base-threads result hmap iostream ocaml)))
+
+(source
+ (fetch
+  (url
+   https://github.com/c-cube/tiny_httpd/releases/download/v0.21/tiny_httpd-0.21.tbz)
+  (checksum
+   sha512=c658430db112079d3198db16b0b9e34015bc6407ed2cc539c695e9d9b3274b13fb87c6f884ff919d707317ed7b13effd14bb7188bb44ec01170a6f099b244ffa)))

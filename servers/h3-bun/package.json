@@ -1,0 +1,12 @@
+{
+  "name": "bench-h3-bun",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.0",
+  "scripts": {
+    "start": "NODE_ENV=production bun src/index.ts"
+  },
+  "dependencies": {
+    "h3": "^2.0.1-rc.29"
+  }
+}

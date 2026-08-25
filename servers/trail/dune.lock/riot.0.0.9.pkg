@@ -1,0 +1,32 @@
+(version 0.0.9)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (bytestring
+   config
+   gluon
+   mirage-crypto
+   mirage-crypto-rng
+   mtime
+   ocaml
+   ptime
+   randomconv
+   rio
+   telemetry
+   tls
+   uri
+   dune)))
+
+(source
+ (fetch
+  (url
+   https://github.com/riot-ml/riot/releases/download/0.0.9/riot-0.0.9.tbz)
+  (checksum
+   sha512=854ae5310d49ca863ac4ea6aa7e7f9129d5b0e3d7093ca16c42d3e5a287219745e24249ff5d00173dd0f60754fc85d98f22895f2084ec0b16c7fb35fdb5d9802)))

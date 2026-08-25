@@ -1,0 +1,18 @@
+(version 1.0)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs}))))))
+
+(depends
+ (all_platforms
+  (ocaml dune seq re)))
+
+(source
+ (fetch
+  (url https://github.com/Drup/tyre/archive/refs/tags/1.0.tar.gz)
+  (checksum
+   sha512=536440d090046569449c7752315d568b3447e84c8c0e555a35a20a504a96a538ed9bc4e8e5f78e5860744ba863023331aa0a9893bf2028ae280cad678ec8d59c)))

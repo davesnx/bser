@@ -1,0 +1,19 @@
+(version 0.0.2)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (dune ocaml colors tty)))
+
+(source
+ (fetch
+  (url
+   https://github.com/leostera/minttea/releases/download/0.0.2/minttea-0.0.2.tbz)
+  (checksum
+   sha512=f7550e05e0e3b61cd3134469368d65f96d89b529e45d6938fd89949390fb14ed8732a02e6ef350fcd8507fa8a1ad393ae29a24b994dbe26917a2c3d879e25698)))

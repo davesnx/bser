@@ -25,6 +25,6 @@ let () =
     match Sys.getenv_opt "PORT" with Some p -> int_of_string p | None -> 8080
   in
   let sockaddr = Unix.(ADDR_INET (inet_addr_any, port)) in
-  Miou_unix.run @@ fun () ->
+  Miou_unix.run ~domains:0 @@ fun () ->
   Printf.printf "httpcats listening on port %d\n%!" port;
-  Httpcats.Server.clear ~handler sockaddr
+  Httpcats.Server.clear ~parallel:false ~handler (Httpcats.Server.Bind sockaddr)

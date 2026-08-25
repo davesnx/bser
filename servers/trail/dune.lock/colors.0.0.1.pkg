@@ -1,0 +1,19 @@
+(version 0.0.1)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (dune ocaml)))
+
+(source
+ (fetch
+  (url
+   https://github.com/leostera/colors/releases/download/0.0.1/colors-0.0.1.tbz)
+  (checksum
+   sha512=fd6ffb5c3e4a35b5d3e2e1e2eec05b36725c355a6e5e6b6c9384dcd1a79a28f98592edb36136582e2735bb78f5905dadfabef01da92f27a1b642d9d0afe289e7)))

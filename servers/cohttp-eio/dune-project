@@ -1,0 +1,15 @@
+(lang dune 3.24)
+
+(name bench_cohttp_eio)
+
+(package
+ (name bench_cohttp_eio)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: Cohttp Eio")
+ (depends
+  (ocaml
+   (>= 5.1))
+  (cohttp-eio
+   (>= 6.2.2))
+  (eio_main
+   (>= 1.1))))

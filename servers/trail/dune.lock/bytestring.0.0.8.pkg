@@ -1,0 +1,19 @@
+(version 0.0.8)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (rio ocaml ppxlib sedlex spices dune)))
+
+(source
+ (fetch
+  (url
+   https://github.com/riot-ml/riot/releases/download/0.0.8/riot-0.0.8.tbz)
+  (checksum
+   sha512=52043592d567b66398d864f3f5c0a3f923007f0125f69a077a34677c60548d5bfb160074bc1847d1153d2c73eb592e2c2488d34fcde4a745fbe72804ad6fcab1)))

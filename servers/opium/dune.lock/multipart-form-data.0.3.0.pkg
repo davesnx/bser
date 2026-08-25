@@ -1,0 +1,15 @@
+(version 0.3.0)
+
+(build
+ (all_platforms ((action (run dune build -p %{pkg-self:name} -j %{jobs})))))
+
+(depends
+ (all_platforms
+  (dune lwt lwt_ppx stringext)))
+
+(source
+ (fetch
+  (url
+   https://github.com/cryptosense/multipart-form-data/archive/0.3.0.tar.gz)
+  (checksum
+   sha512=fa1a8cb8adda2fa5fff1dbeda76ba294aeb254118db5019d0249b4afecc9fb012ae3566074bbc29d38b53d2196fc5395034db64e4b8d5406ebda56b58707bf75)))

@@ -1,0 +1,19 @@
+(version 0.0.9)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (bytestring config libc ocaml rio uri dune)))
+
+(source
+ (fetch
+  (url
+   https://github.com/riot-ml/gluon/releases/download/0.0.9/gluon-0.0.9.tbz)
+  (checksum
+   sha512=c366898d59e52d39040debe8ea721caf3800e90e327bbd45345226b384fc72427ac7fd7a9fd0acf040663711d5a6a19a5366af3d31800b53b55732afd8e8fc03)))

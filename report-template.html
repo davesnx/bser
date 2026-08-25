@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>HTTP server benchmark results</title>
+  <style>
+    :root {
+      --bg: oklch(0.24 0 0);
+      --surface: oklch(0.29 0.008 350);
+      --surface-strong: oklch(0.35 0.012 350);
+      --line: oklch(0.43 0.012 350);
+      --ink: oklch(0.96 0.008 350);
+      --muted: oklch(0.82 0.018 350);
+      --faint: oklch(0.72 0.015 350);
+      --primary: oklch(0.72 0.16 245);
+      --accent: oklch(0.78 0.15 65);
+      --bun: oklch(0.72 0.16 245);
+      --ocaml: oklch(0.78 0.15 65);
+      --ok: oklch(0.78 0.15 145);
+      --focus: oklch(0.84 0.13 90);
+      --font: "Google Sans Code", ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--bg); color: var(--ink); font-family: var(--font); }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      font-size: 1rem;
+      line-height: 1.6;
+      font-feature-settings: "tnum" 1, "zero" 1;
+    }
+
+    a { color: var(--accent); }
+
+    button, select { font: inherit; }
+
+    button:focus-visible, select:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .shell { width: min(100% - 2rem, 88rem); margin: 0 auto; padding: 2.5rem 0 4rem; }
+
+    header {
+      padding: 1.5rem 0 2rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0.55rem 0 0.75rem;
+      max-width: 100%;
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      line-height: 1.04;
+      letter-spacing: -0.035em;
+      text-wrap: balance;
+    }
+
+    .lede { max-width: 70ch; margin: 0; color: var(--muted); font-size: 1.08rem; text-wrap: pretty; }
+
+    .runline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1.25rem;
+      margin: 1.35rem 0 0;
+      padding: 0;
+      color: var(--muted);
+      list-style: none;
+    }
+
+    .runline strong { color: var(--ink); font-weight: 600; }
+
+    main > section { padding: 2rem 0; border-bottom: 1px solid var(--line); }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    h2 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+    h2::before { content: "## "; color: var(--primary); }
+    .note { margin: 0; color: var(--faint); font-size: 0.9rem; }
+
+    .summary {
+      margin: 0;
+      max-width: 78ch;
+      color: var(--muted);
+    }
+
+    .summary strong { color: var(--ink); }
+    .status-ok { color: var(--ok); }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+
+    .controls button, .controls select {
+      min-height: 2.65rem;
+      border: 1px solid var(--line);
+      border-radius: 0;
+      background: var(--surface);
+      color: var(--ink);
+      padding: 0.55rem 0.85rem;
+    }
+
+    .controls button[aria-pressed="true"] {
+      border-color: var(--primary);
+      background: oklch(0.34 0.07 245);
+    }
+
+    .controls button[data-filter="bun"] { color: var(--bun); }
+    .controls button[data-filter="ocaml"] { color: var(--ocaml); }
+    .controls button[data-filter="bun"][aria-pressed="true"] { border-color: var(--bun); }
+    .controls button[data-filter="ocaml"][aria-pressed="true"] { border-color: var(--ocaml); background: oklch(0.34 0.06 65); }
+
+    .chart { display: grid; gap: 0.55rem; }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(8rem, 11rem) minmax(10rem, 1fr) 7rem;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 2rem;
+    }
+
+    .bar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-track { height: 0.72rem; background: var(--surface-strong); overflow: hidden; }
+    .bar-fill { height: 100%; width: var(--size); background: var(--bun); transition: width 180ms ease-out; }
+    .bar-row[data-family="ocaml"] .bar-fill { background: var(--ocaml); }
+    .bar-value { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--bg); }
+
+    table { width: 100%; min-width: 82rem; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+
+    th, td { padding: 0.72rem 0.8rem; border-bottom: 1px solid var(--line); text-align: right; }
+    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: var(--surface); }
+
+    th { position: sticky; top: 0; background: var(--surface); color: var(--muted); font-size: 0.88rem; font-weight: 600; }
+    th button { width: 100%; border: 0; background: transparent; color: inherit; padding: 0; text-align: inherit; cursor: pointer; }
+    th[aria-sort="ascending"] button::after { content: " ↑"; color: var(--primary); }
+    th[aria-sort="descending"] button::after { content: " ↓"; color: var(--primary); }
+
+    .rank { color: var(--faint); }
+    .family { color: var(--faint); }
+    tbody tr[data-family="bun"] strong { color: var(--bun); }
+    tbody tr[data-family="ocaml"] strong { color: var(--ocaml); }
+    .bun-text { color: var(--bun); }
+    .ocaml-text { color: var(--ocaml); }
+    .zero { color: var(--ok); }
+
+    footer { padding-top: 1.5rem; color: var(--faint); font-size: 0.9rem; }
+    footer p { max-width: 78ch; }
+
+    @media (max-width: 700px) {
+      .shell { width: min(100% - 1rem, 88rem); padding-top: 0.5rem; }
+      header { padding-top: 1rem; }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .bar-row { grid-template-columns: minmax(6.5rem, 8rem) 1fr 5.8rem; gap: 0.45rem; }
+      .note { max-width: 42ch; }
+    }
+
+    @media (prefers-reduced-motion: reduce) { .bar-fill { transition: none; } }
+
+    @media print {
+      :root { --bg: oklch(1 0 0); --surface: oklch(0.96 0 0); --surface-strong: oklch(0.9 0 0); --line: oklch(0.75 0 0); --ink: oklch(0.12 0 0); --muted: oklch(0.35 0 0); --faint: oklch(0.45 0 0); }
+      body { background: var(--bg); }
+      .controls { display: none; }
+      .shell { width: 100%; padding: 0; }
+      main > section { break-inside: avoid; }
+      .table-wrap { overflow: visible; }
+      table { min-width: 0; font-size: 9pt; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <h1>HTTP server benchmark results</h1>
+      <p class="lede" id="lede"></p>
+      <ul class="runline" id="runline" aria-label="Benchmark configuration"></ul>
+    </header>
+
+    <main>
+      <section aria-labelledby="summary-title">
+        <div class="section-head"><h2 id="summary-title">Readout</h2><p class="note" id="run-note"></p></div>
+        <p class="summary" id="summary"></p>
+      </section>
+
+      <section aria-labelledby="chart-title">
+        <div class="section-head">
+          <h2 id="chart-title">Ranked comparison</h2>
+          <div class="controls" aria-label="Chart controls">
+            <button type="button" data-filter="all" aria-pressed="true">all</button>
+            <button type="button" data-filter="bun" aria-pressed="false">bun/ts</button>
+            <button type="button" data-filter="ocaml" aria-pressed="false">ocaml</button>
+            <label><span class="note">metric </span><select id="metric"><option value="rps">req/s</option><option value="p99">p99 latency</option><option value="rss">peak RSS</option></select></label>
+          </div>
+        </div>
+        <div class="chart" id="chart" aria-live="polite"></div>
+      </section>
+
+      <section aria-labelledby="table-title">
+        <div class="section-head"><h2 id="table-title">Full result set</h2><p class="note">Select a heading to sort.</p></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th scope="col">#</th>
+              <th scope="col" data-key="name"><button type="button">server</button></th>
+              <th scope="col" data-key="rps" aria-sort="descending"><button type="button">req/s</button></th>
+              <th scope="col" data-key="avg"><button type="button">avg ms</button></th>
+              <th scope="col" data-key="p50"><button type="button">p50 ms</button></th>
+              <th scope="col" data-key="p90"><button type="button">p90 ms</button></th>
+              <th scope="col" data-key="p99"><button type="button">p99 ms</button></th>
+              <th scope="col" data-key="throughput"><button type="button">MB/s</button></th>
+              <th scope="col" data-key="rss"><button type="button">RSS MB</button></th>
+              <th scope="col" data-key="cpu"><button type="button">CPU %</button></th>
+              <th scope="col" data-key="errors"><button type="button">errors</button></th>
+            </tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p id="source-note"></p>
+      <p id="report-date"></p>
+    </footer>
+  </div>
+
+  <script>
+    const payload = __REPORT_DATA__;
+    const environment = payload.environment;
+    const config = environment.config;
+    const successful = payload.results.filter(item => item.status === "ok");
+    const data = successful.map(item => ({
+      name: item.name,
+      runtime: item.runtime,
+      family: item.runtime.startsWith("OCaml") ? "ocaml" : "bun",
+      rps: item.metrics.requests_per_sec,
+      avg: item.metrics.latency_ms.avg,
+      p50: item.metrics.latency_ms.p50,
+      p90: item.metrics.latency_ms.p90,
+      p99: item.metrics.latency_ms.p99,
+      throughput: item.metrics.throughput_bytes_per_sec / 1e6,
+      rss: item.resources.peak_rss_bytes / 1e6,
+      cpu: item.resources.cpu_percent,
+      errors: item.metrics.errors + item.metrics.non_2xx
+    }));
+
+    const timestamp = environment.timestamp || "";
+    const reportDate = timestamp.slice(0, 10);
+    const isSmoke = config.duration <= 5;
+    const failed = payload.results.length - successful.length;
+    const fastest = [...data].sort((a, b) => b.rps - a.rps)[0];
+    const fastestOcaml = [...data].filter(item => item.family === "ocaml").sort((a, b) => b.rps - a.rps)[0];
+    const lowestP99 = [...data].sort((a, b) => a.p99 - b.p99)[0];
+    const totalErrors = data.reduce((sum, item) => sum + item.errors, 0);
+
+    document.title = `bser benchmark / ${timestamp}`;
+    document.querySelector("#lede").textContent = `A one-CPU ${isSmoke ? "smoke " : ""}comparison across ${payload.results.length} Bun, TypeScript framework, and OCaml server implementations. Every successful server returned the same validated 13-byte response.`;
+    document.querySelector("#runline").innerHTML = `<li><strong>${environment.tool}</strong> ${config.duration}s + ${config.warmup}s warmup</li><li><strong>${config.connections}</strong> connections</li><li><strong>${config.threads}</strong> load threads</li><li>server CPU <strong>${config.server_cpu}</strong></li><li>load CPUs <strong>${config.load_cpus.join(", ")}</strong></li>`;
+    document.querySelector("#run-note").textContent = isSmoke ? "Smoke data is directional, not a final ranking." : "Compare repeated runs and medians before making performance claims.";
+    const summary = document.querySelector("#summary");
+    if (fastest) {
+      const ocamlSummary = fastestOcaml ? ` <strong class="ocaml-text">${fastestOcaml.name}</strong> was the fastest OCaml implementation at <strong>${Math.round(fastestOcaml.rps).toLocaleString("en-US")} req/s</strong>.` : "";
+      summary.innerHTML = `<strong class="${fastest.family}-text">${fastest.name}</strong> led throughput at <strong>${Math.round(fastest.rps).toLocaleString("en-US")} req/s</strong>.${ocamlSummary} The lowest p99 was <strong>${lowestP99.p99.toFixed(3)} ms</strong>, from ${lowestP99.name}. <span class="status-ok">${successful.length}/${payload.results.length} completed with ${totalErrors} request errors${failed ? `; ${failed} failed` : ""}.</span>`;
+    } else {
+      summary.textContent = `No server completed successfully. ${failed}/${payload.results.length} failed.`;
+    }
+    document.querySelector("#source-note").innerHTML = `Source: <code>results.json</code>. ${isSmoke ? "This is a pipeline smoke run. " : ""}Use repeated 30-second runs and compare medians before making performance claims.`;
+    document.querySelector("#report-date").textContent = reportDate;
+
+    const chart = document.querySelector("#chart");
+    const rows = document.querySelector("#rows");
+    const metric = document.querySelector("#metric");
+    let filter = "all";
+    let sortKey = "rps";
+    let sortDirection = "desc";
+
+    const formats = {
+      rps: value => Math.round(value).toLocaleString("en-US"),
+      avg: value => value.toFixed(3), p50: value => value.toFixed(3),
+      p90: value => value.toFixed(3), p99: value => value.toFixed(3),
+      throughput: value => value.toFixed(2), rss: value => value.toFixed(1),
+      cpu: value => value.toFixed(0), errors: value => String(value)
+    };
+
+    function visibleData() { return filter === "all" ? data : data.filter(item => item.family === filter); }
+
+    function renderChart() {
+      const key = metric.value;
+      const lowerIsBetter = key === "p99" || key === "rss";
+      const items = [...visibleData()].sort((a, b) => lowerIsBetter ? a[key] - b[key] : b[key] - a[key]);
+      const max = Math.max(...items.map(item => item[key]));
+      const label = key === "rps" ? formats.rps : key === "p99" ? value => `${value.toFixed(3)} ms` : value => `${value.toFixed(1)} MB`;
+      chart.innerHTML = items.map(item => `<div class="bar-row" data-family="${item.family}"><span class="bar-name" title="${item.runtime}">${item.name}</span><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="--size:${(item[key] / max * 100).toFixed(2)}%"></div></div><span class="bar-value">${label(item[key])}</span></div>`).join("");
+    }
+
+    function renderTable() {
+      const items = [...visibleData()].sort((a, b) => {
+        const left = a[sortKey], right = b[sortKey];
+        const result = typeof left === "string" ? left.localeCompare(right) : left - right;
+        return sortDirection === "asc" ? result : -result;
+      });
+      rows.innerHTML = items.map((item, index) => `<tr data-family="${item.family}"><td class="rank">${String(index + 1).padStart(2, "0")}</td><td><strong>${item.name}</strong><br><span class="family">${item.runtime}</span></td><td>${formats.rps(item.rps)}</td><td>${formats.avg(item.avg)}</td><td>${formats.p50(item.p50)}</td><td>${formats.p90(item.p90)}</td><td>${formats.p99(item.p99)}</td><td>${formats.throughput(item.throughput)}</td><td>${formats.rss(item.rss)}</td><td>${formats.cpu(item.cpu)}</td><td class="${item.errors === 0 ? "zero" : ""}">${item.errors}</td></tr>`).join("");
+    }
+
+    document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
+      filter = button.dataset.filter;
+      document.querySelectorAll("[data-filter]").forEach(control => control.setAttribute("aria-pressed", String(control === button)));
+      renderChart(); renderTable();
+    }));
+
+    metric.addEventListener("change", renderChart);
+
+    document.querySelectorAll("th[data-key]").forEach(header => header.querySelector("button").addEventListener("click", () => {
+      const nextKey = header.dataset.key;
+      sortDirection = sortKey === nextKey && sortDirection === "desc" ? "asc" : "desc";
+      sortKey = nextKey;
+      document.querySelectorAll("th[aria-sort]").forEach(item => item.removeAttribute("aria-sort"));
+      header.setAttribute("aria-sort", sortDirection === "asc" ? "ascending" : "descending");
+      renderTable();
+    }));
+
+    renderChart();
+    renderTable();
+  </script>
+</body>
+</html>

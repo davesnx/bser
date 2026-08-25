@@ -1,0 +1,3 @@
+(executable
+ (name main)
+ (libraries httpun httpun-lwt-unix lwt.unix))

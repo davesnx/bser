@@ -1,0 +1,19 @@
+(version 0.3)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (ocaml dune base-unix)))
+
+(source
+ (fetch
+  (url
+   https://github.com/c-cube/ocaml-iostream/releases/download/v0.3/iostream-0.3.tbz)
+  (checksum
+   sha512=68ff56d48b2fcbd34ef2c15f6a8969543caa5c5e6b14177a0fde1e2b12d2fe52448d233e02cd1ab2529f74f48b31954ae8ec9e22601cfda6d3c38ce667c1b851)))

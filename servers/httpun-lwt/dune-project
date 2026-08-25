@@ -1,0 +1,16 @@
+(lang dune 3.24)
+
+(name bench_httpun_lwt)
+
+(package
+ (name bench_httpun_lwt)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: httpun Lwt")
+ (depends
+  (ocaml
+   (>= 5.1))
+  (httpun
+   (>= 0.2.0))
+  (httpun-lwt-unix
+   (>= 0.2.0))
+  lwt))

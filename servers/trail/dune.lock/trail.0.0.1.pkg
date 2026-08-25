@@ -1,0 +1,19 @@
+(version 0.0.1)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (atacama bytestring http magic-mime ocaml ppx_bitstring riot uuidm dune)))
+
+(source
+ (fetch
+  (url
+   https://github.com/suri-framework/trail/releases/download/0.0.1/trail-0.0.1.tbz)
+  (checksum
+   sha512=012591f9c9b88ab774a577d6b534019f8270888999834d71aeddf33f92fbd09c4f56449aeafc3ccc7850558a555177f626e46b66355251249824ffcbd4f2294b)))

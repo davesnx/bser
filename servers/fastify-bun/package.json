@@ -1,0 +1,12 @@
+{
+  "name": "bench-fastify-bun",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.0",
+  "scripts": {
+    "start": "NODE_ENV=production bun src/index.ts"
+  },
+  "dependencies": {
+    "fastify": "^5.12.1"
+  }
+}

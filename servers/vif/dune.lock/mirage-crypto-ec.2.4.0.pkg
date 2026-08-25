@@ -1,0 +1,19 @@
+(version 2.4.0)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs}))))))
+
+(depends
+ (all_platforms
+  (dune ocaml dune-configurator eqaf mirage-crypto-rng digestif)))
+
+(source
+ (fetch
+  (url
+   https://github.com/mirage/mirage-crypto/releases/download/v2.4.0/mirage-crypto-2.4.0.tbz)
+  (checksum
+   sha512=378b9ae826212471c4820636fa0be27a33013ecf801ba7202fbf0bbf8ac20b1072f782d34b868e5491616ef93bd7c0ec81f9705f7afd287b2ac595a913d32401)))
