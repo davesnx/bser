@@ -6,6 +6,7 @@ import glob
 import json
 import os
 import re
+import shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(HERE, "report-template.html")
@@ -155,6 +156,11 @@ def main():
     parser.add_argument("results", help="path to results.json")
     parser.add_argument("--out", help="output path; defaults to report.html beside results")
     parser.add_argument(
+        "--copy-results",
+        action="store_true",
+        help="copy results.json beside the generated report",
+    )
+    parser.add_argument(
         "--refresh-dependencies",
         action="store_true",
         help="replace the stored dependency inventory with the current locks",
@@ -167,6 +173,10 @@ def main():
         payload["dependencies"] = collect_dependency_versions()
     output_path = args.out or os.path.join(os.path.dirname(args.results), "report.html")
     write_report(payload, output_path)
+    if args.copy_results:
+        results_output = os.path.join(os.path.dirname(output_path), "results.json")
+        if os.path.abspath(args.results) != os.path.abspath(results_output):
+            shutil.copyfile(args.results, results_output)
     print(output_path)
 
 
