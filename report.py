@@ -6,7 +6,6 @@ import glob
 import json
 import os
 import re
-import shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(HERE, "report-template.html")
@@ -175,8 +174,8 @@ def main():
     write_report(payload, output_path)
     if args.copy_results:
         results_output = os.path.join(os.path.dirname(output_path), "results.json")
-        if os.path.abspath(args.results) != os.path.abspath(results_output):
-            shutil.copyfile(args.results, results_output)
+        with open(results_output, "w") as results_file:
+            json.dump(payload, results_file, indent=2, default=str)
     print(output_path)
 
 

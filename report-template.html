@@ -244,6 +244,7 @@
             <button type="button" data-filter="bun" aria-pressed="false">bun/ts</button>
             <button type="button" data-filter="ocaml" aria-pressed="false">ocaml</button>
             <button type="button" id="multicore-toggle" aria-pressed="false">show multicore</button>
+            <button type="button" id="flambda-toggle" aria-pressed="true">hide Flambda</button>
             <label><span class="note">metric </span><select id="metric"><option value="rps">req/s</option><option value="p99">p99 latency</option><option value="rss">peak RSS</option></select></label>
           </div>
         </div>
@@ -303,7 +304,8 @@
     const fallbackServerCpus = Number.isInteger(config.server_cpu) ? [config.server_cpu] : [];
     const results = payload.results.map(item => {
       const serverCpus = Array.isArray(item.server_cpus) ? item.server_cpus : fallbackServerCpus;
-      return { ...item, serverCpus, multicore: serverCpus.length > 1 };
+      const flambda = item.name.endsWith("-flambda") || item.runtime.includes("Flambda");
+      return { ...item, serverCpus, multicore: serverCpus.length > 1, flambda };
     });
     const successful = results.filter(item => item.status === "ok");
     const data = successful.map(item => ({
@@ -312,6 +314,7 @@
       family: item.runtime.startsWith("OCaml") ? "ocaml" : "bun",
       serverCpus: item.serverCpus,
       multicore: item.multicore,
+      flambda: item.flambda,
       rps: item.metrics.requests_per_sec,
       avg: item.metrics.latency_ms.avg,
       p50: item.metrics.latency_ms.p50,
@@ -328,6 +331,7 @@
     const isSmoke = config.duration <= 5;
     const dependencies = payload.dependencies || { runtimes: [], npm: [], ocaml: [] };
     const multicoreCount = results.filter(item => item.multicore).length;
+    const flambdaCount = results.filter(item => item.flambda).length;
     const serverPool = Array.isArray(config.server_cpus) ? config.server_cpus : fallbackServerCpus;
 
     document.title = `bser benchmark / ${timestamp}`;
@@ -363,8 +367,10 @@
     const rows = document.querySelector("#rows");
     const metric = document.querySelector("#metric");
     const multicoreToggle = document.querySelector("#multicore-toggle");
+    const flambdaToggle = document.querySelector("#flambda-toggle");
     let filter = "all";
     let showMulticore = false;
+    let showFlambda = true;
     let sortKey = "rps";
     let sortDirection = "desc";
 
@@ -377,7 +383,9 @@
     };
 
     function comparisonData() {
-      return showMulticore ? data : data.filter(item => !item.multicore);
+      return data.filter(item =>
+        (showMulticore || !item.multicore) && (showFlambda || !item.flambda)
+      );
     }
 
     function visibleData() {
@@ -387,7 +395,9 @@
 
     function renderSummary() {
       const items = comparisonData();
-      const visibleResults = showMulticore ? results : results.filter(item => !item.multicore);
+      const visibleResults = results.filter(item =>
+        (showMulticore || !item.multicore) && (showFlambda || !item.flambda)
+      );
       const failed = visibleResults.length - items.length;
       if (!items.length) {
         summary.textContent = `No server completed successfully. ${failed}/${visibleResults.length} failed.`;
@@ -437,6 +447,18 @@
         showMulticore = !showMulticore;
         multicoreToggle.setAttribute("aria-pressed", String(showMulticore));
         multicoreToggle.textContent = `${showMulticore ? "hide" : "show"} multicore (${multicoreCount})`;
+        renderSummary(); renderChart(); renderTable();
+      });
+    }
+
+    if (flambdaCount === 0) {
+      flambdaToggle.hidden = true;
+    } else {
+      flambdaToggle.textContent = `hide Flambda (${flambdaCount})`;
+      flambdaToggle.addEventListener("click", () => {
+        showFlambda = !showFlambda;
+        flambdaToggle.setAttribute("aria-pressed", String(showFlambda));
+        flambdaToggle.textContent = `${showFlambda ? "hide" : "show"} Flambda (${flambdaCount})`;
         renderSummary(); renderChart(); renderTable();
       });
     }
