@@ -22,7 +22,7 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `trail` | OCaml [Trail](https://github.com/leostera/trail), Nomad, and Riot |
 | `httpcats` | OCaml [httpcats](https://github.com/robur-coop/httpcats) on Miou |
 | `httpcats-flambda` | httpcats built with Flambda enabled |
-| `httpcats-multicore` | httpcats with eight Miou domains and parallel dispatch |
+| `httpcats-multicore` | httpcats with eight domain-local Miou accept loops |
 | `cohttp-eio` | OCaml [Cohttp](https://github.com/mirage/ocaml-cohttp) on Eio |
 | `cohttp-eio-flambda` | Cohttp Eio built with Flambda enabled |
 | `cohttp-eio-multicore` | Cohttp Eio with four domains |
