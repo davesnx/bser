@@ -18,7 +18,7 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `dream-flambda` | Dream built with Flambda enabled |
 | `opium` | OCaml [Opium](https://github.com/rgrinberg/opium) on http/af and Lwt |
 | `vif` | OCaml [Vif](https://robur-coop.github.io/vif/) on httpcats and Miou |
-| `vif-multicore` | Vif with four Miou domains |
+| `vif-multicore` | Vif with eight Miou domains |
 | `trail` | OCaml [Trail](https://github.com/leostera/trail), Nomad, and Riot |
 | `httpcats` | OCaml [httpcats](https://github.com/robur-coop/httpcats) on Miou |
 | `httpcats-flambda` | httpcats built with Flambda enabled |
@@ -156,10 +156,10 @@ the next starts. The HTML report hides multicore results by default; use its
 - The harness reserves a server CPU pool large enough for the selected entries.
   Use `--server-cpu` to select its first logical CPU. One-CPU entries use only
   that CPU. The load generator uses a stable, disjoint CPU set.
-- Multicore results use each entry's declared OCaml domain count. httpcats uses
-  eight; the other multicore entries use four. They are an explicit scaling axis,
-  not direct replacements for the one-CPU rankings. Logical CPU topology still
-  matters; use separate physical cores for publishable results.
+- Multicore results use each entry's declared OCaml domain count. httpcats and
+  Vif use eight; the other multicore entries use four. They are an explicit
+  scaling axis, not direct replacements for the one-CPU rankings. Logical CPU
+  topology still matters; use separate physical cores for publishable results.
 
 ## Status / caveats
 
