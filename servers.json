@@ -100,8 +100,8 @@
       "runtime": "OCaml + Vif (httpcats + miou, multicore)",
       "cwd": "servers/vif-multicore",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
-      "run": "_build/default/main.exe",
-      "cpu_count": 4
+      "run": "OCAMLRUNPARAM=s=640k _build/default/main.exe",
+      "cpu_count": 8
     },
     {
       "name": "trail",
@@ -129,8 +129,8 @@
       "runtime": "OCaml + httpcats (miou, multicore)",
       "cwd": "servers/httpcats-multicore",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
-      "run": "_build/default/main.exe",
-      "cpu_count": 10
+      "run": "OCAMLRUNPARAM=s=1M _build/default/main.exe",
+      "cpu_count": 8
     },
     {
       "name": "cohttp-eio",
