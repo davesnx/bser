@@ -54,3 +54,10 @@ outputs `METRIC name=value` lines.
   `parallel:false`; this repository currently uses `parallel:true`, which can
   transfer each accepted connection to another domain.
 - Flambda showed mixed results across stacks and is not assumed to be a win.
+- Reducing the declared domain count from ten to eight improved the confirmed
+  median from 204,346.99 to 284,568.97 req/s (+39.3%), reduced p99 latency from
+  9.51 to 5.24 ms, and reduced peak RSS from 84.95 to 71.55 MB.
+- Domain-local accept loops improved the original ten-domain baseline by 8.5%
+  and remain a safe combination candidate because they change a separate file.
+- Reusing one response value regressed throughput by 1.8% and p99 latency by
+  9.1%; do not repeat this shape without allocation-profile evidence.
