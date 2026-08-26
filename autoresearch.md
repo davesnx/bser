@@ -62,3 +62,7 @@ check, so no separate correctness script is needed.
   throughput by 52.8%.
 - The accepted eight-domain result uses 84.33 MB peak RSS, below the segment's
   113.28 MB limit.
+- Ten domains were 20.0% slower than eight and raised p99 latency to 8.73 ms.
+- A 1M-word minor heap improved throughput by 18.4% over the accepted best, but
+  its 134.03 MB peak RSS breached the fixed segment limit and was rejected.
+- An explicit backlog of 4096 was 2.2% slower than the accepted best.

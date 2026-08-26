@@ -11,11 +11,11 @@
 - Vif manages its own Miou/httpcats multicore accept loops.
 - Vif scales through eight domains without the sharp contention seen in the
   old httpcats configuration.
+- Ten domains cross Vif's scaling limit; eight remains the best domain count.
 
 ## Next Ideas
 
-- Test selected minor-heap sizes on the best domain count.
-- Test ten domains to locate Vif's scaling limit.
+- Test smaller minor heaps that can stay below the RSS limit.
 
 ### Run 12, batch 0: baseline - requests_per_sec=181466.67 (KEEP)
 
@@ -64,3 +64,37 @@
 - Insight: Eight domains give a clear, stable gain and remain within the memory
   constraint.
 - Next: Tune the minor heap on this domain count.
+
+### Run 16, batch 2: ten_domains - requests_per_sec=224929.55 (DISCARD)
+
+- Timestamp: 2026-08-26 15:44 UTC
+- Base: `a26dc50`
+- Candidate: `b56c16af4182f66f393f9fd6610e68f353a89f732f1ae2e8af762846cfee3086`
+- Files: `README.md`, `servers.json`
+- Result: 224,929.55 req/s (-20.0% vs best), p99 8.73 ms,
+  peak RSS 96,100,352 bytes, CPU 876.00%, 0 errors
+- Insight: Vif hits contention above eight domains.
+- Next: Keep eight domains.
+
+### Run 17, batch 2: minor_heap_1m - requests_per_sec=333074.16 (DISCARD)
+
+- Timestamp: 2026-08-26 15:44 UTC
+- Base: `a26dc50`
+- Candidate: `c2c0889e7916d377474185b6dabb99c404bcc608c546d68d46f629084e98b47e`
+- Files: `README.md`, `servers.json`
+- Result: 333,074.16 req/s (+18.4% vs best), p99 3.67 ms,
+  peak RSS 134,029,312 bytes, CPU 757.94%, 0 errors
+- Insight: The heap reduces GC cost but exceeds the fixed 113,278,976-byte RSS
+  limit, so the primary gain is not eligible.
+- Next: Test smaller heaps.
+
+### Run 18, batch 2: backlog_4096 - requests_per_sec=275029.06 (DISCARD)
+
+- Timestamp: 2026-08-26 15:44 UTC
+- Base: `a26dc50`
+- Candidate: `317584358cb7deb7f36211aa3b78c8d44b789c1353a7544b086b05897a59a038`
+- Files: `servers/vif-multicore/main.ml`
+- Result: 275,029.06 req/s (-2.2% vs best), p99 5.02 ms,
+  peak RSS 83,628,032 bytes, CPU 746.21%, 0 errors
+- Insight: A larger listen queue does not help 64 persistent connections.
+- Next: Keep Vif's default backlog.
