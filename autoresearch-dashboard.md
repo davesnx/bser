@@ -1,10 +1,11 @@
 # Autoresearch Dashboard: Improve OCaml Vif multicore
 
-**Batches:** 2 | **Runs:** 7 | **Kept:** 2 | **Runner-ups:** 1 | **Discarded:** 4 | **Failed:** 0
+**Batches:** 3 | **Runs:** 10 | **Kept:** 3 | **Runner-ups:** 3 | **Discarded:** 4 | **Failed:** 0
 **Baseline:** requests_per_sec: 181466.67 req/s (#12)
-**Best:** requests_per_sec: 281222.19 req/s (#15, +55.0%)
-**Confidence:** 2.1x
-**Stop:** 7/10 experiments | 1/2 plateau batches | 42/90 minutes
+**Best:** requests_per_sec: 322645.04 req/s (#21, +77.8%)
+**Confidence:** 3.0x
+**Stop:** 10/10 experiments | 0/2 plateau batches | 64/90 minutes
+**Stop reason:** Reached the segment experiment limit.
 
 | # | batch | hypothesis | candidate ref | requests_per_sec | status |
 |---|---:|---|---|---:|---|
@@ -15,3 +16,6 @@
 | 16 | 2 | ten_domains | b56c16af | 224929.55 (+24.0%) | discard |
 | 17 | 2 | minor_heap_1m | c2c0889e | 333074.16 (+83.5%) | discard (RSS) |
 | 18 | 2 | backlog_4096 | 31758435 | 275029.06 (+51.6%) | discard |
+| 19 | 3 | minor_heap_384k | 2767e214 | 299413.94 (+65.0%) | runner_up |
+| 20 | 3 | minor_heap_512k | 3207fcd9 | 313579.34 (+72.8%) | runner_up |
+| 21 | 3 | minor_heap_640k | a41fb15c | 322645.04 (+77.8%) | keep |

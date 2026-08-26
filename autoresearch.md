@@ -66,3 +66,7 @@ check, so no separate correctness script is needed.
 - A 1M-word minor heap improved throughput by 18.4% over the accepted best, but
   its 134.03 MB peak RSS breached the fixed segment limit and was rejected.
 - An explicit backlog of 4096 was 2.2% slower than the accepted best.
+- Minor heaps of 384k, 512k, and 640k words improved throughput by 6.5%, 11.5%,
+  and 14.7% over the eight-domain result. All stayed within the RSS limit.
+- The accepted 640k heap confirmed at 322,645.04 req/s, 77.8% above the original
+  four-domain baseline, with 3.74 ms p99 latency and 108.29 MB peak RSS.

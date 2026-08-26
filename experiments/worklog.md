@@ -12,10 +12,12 @@
 - Vif scales through eight domains without the sharp contention seen in the
   old httpcats configuration.
 - Ten domains cross Vif's scaling limit; eight remains the best domain count.
+- A 640k-word minor heap is the fastest tested setting within the fixed RSS
+  limit.
 
 ## Next Ideas
 
-- Test smaller minor heaps that can stay below the RSS limit.
+- Capture GC runtime events for the default and accepted 640k heaps.
 
 ### Run 12, batch 0: baseline - requests_per_sec=181466.67 (KEEP)
 
@@ -98,3 +100,48 @@
   peak RSS 83,628,032 bytes, CPU 746.21%, 0 errors
 - Insight: A larger listen queue does not help 64 persistent connections.
 - Next: Keep Vif's default backlog.
+
+### Run 19, batch 3: minor_heap_384k - requests_per_sec=299413.94 (RUNNER_UP)
+
+- Timestamp: 2026-08-26 16:05 UTC
+- Base: `a26dc50`
+- Candidate: `2767e2140c807a374a7858d0e8df0b2b53f24056ef5dd701932d0c12e0ad9a3d`
+- Files: `README.md`, `servers.json`
+- Result: 299,413.94 req/s (+6.5% vs prior best), p99 4.25 ms,
+  peak RSS 92,454,912 bytes, CPU 749.84%, 0 errors
+- Insight: A modest heap increase reduces enough collection work to improve
+  throughput without approaching the memory limit.
+- Next: Larger safe heaps performed better.
+
+### Run 20, batch 3: minor_heap_512k - requests_per_sec=313579.34 (RUNNER_UP)
+
+- Timestamp: 2026-08-26 16:05 UTC
+- Base: `a26dc50`
+- Candidate: `3207fcd9672f96adb49fb25692cc553bcbed95e0ca392eddc4a9ee58c88c03d1`
+- Files: `README.md`, `servers.json`
+- Result: 313,579.34 req/s (+11.5% vs prior best), p99 4.24 ms,
+  peak RSS 100,683,776 bytes, CPU 755.34%, 0 errors
+- Insight: Throughput continues to improve as the heap grows within budget.
+- Next: The 640k candidate supersedes this result.
+
+### Run 21, batch 3: minor_heap_640k - requests_per_sec=322645.04 (KEEP)
+
+- Timestamp: 2026-08-26 16:05 UTC
+- Base: `a26dc50`
+- Candidate: `a41fb15c65d5ab30154041d557f1a17a1a12230d5081a52b3fc04345db1acc09`
+- Files: `README.md`, `servers.json`
+- Result: 322,645.04 req/s (+77.8% vs baseline, +14.7% vs prior best),
+  p99 3.74 ms, peak RSS 108,290,048 bytes, CPU 759.84%, 0 errors
+- Samples: 333,454.12; 320,410.31; 324,886.31; 314,412.65; 322,645.04
+- Insight: The 640k heap captures most of the 1M throughput gain while staying
+  about 5 MB below the fixed RSS limit.
+- Next: Keep this setting.
+
+## Stop Summary
+
+- Stop reason: reached the segment limit of 10 experiments.
+- Final accepted result: 322,645.04 req/s, 77.8% above baseline.
+- Confidence: 3.0x the measured cross-experiment noise floor.
+- Kept changes: eight total domains and a 640k-word minor heap.
+- Untested: GC runtime-event profiling and workload sensitivity at other
+  connection counts.
