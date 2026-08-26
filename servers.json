@@ -129,7 +129,7 @@
       "runtime": "OCaml + httpcats (miou, multicore)",
       "cwd": "servers/httpcats-multicore",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
-      "run": "_build/default/main.exe",
+      "run": "OCAMLRUNPARAM=s=1M _build/default/main.exe",
       "cpu_count": 8
     },
     {
