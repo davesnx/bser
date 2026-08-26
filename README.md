@@ -18,7 +18,7 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `dream-flambda` | Dream built with Flambda enabled |
 | `opium` | OCaml [Opium](https://github.com/rgrinberg/opium) on http/af and Lwt |
 | `vif` | OCaml [Vif](https://robur-coop.github.io/vif/) on httpcats and Miou |
-| `vif-multicore` | Vif with eight Miou domains |
+| `vif-multicore` | Vif with eight Miou domains and a 640k-word minor heap |
 | `trail` | OCaml [Trail](https://github.com/leostera/trail), Nomad, and Riot |
 | `httpcats` | OCaml [httpcats](https://github.com/robur-coop/httpcats) on Miou |
 | `httpcats-flambda` | httpcats built with Flambda enabled |
