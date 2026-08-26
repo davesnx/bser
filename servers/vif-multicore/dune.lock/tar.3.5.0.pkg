@@ -1,0 +1,34 @@
+(version 3.5.0)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run
+      dune
+      build
+      -p
+      %{pkg-self:name}
+      -j
+      %{jobs}
+      --promote-install-files=false
+      @install)
+     (run
+      dune
+      install
+      -p
+      %{pkg-self:name}
+      --create-install-files
+      %{pkg-self:name}))))))
+
+(depends
+ (all_platforms
+  (dune ocaml decompress)))
+
+(source
+ (fetch
+  (url
+   https://github.com/mirage/ocaml-tar/releases/download/v3.5.0/tar-3.5.0.tbz)
+  (checksum
+   sha512=07949e3ed9d95744e8e9e1744863aa3b791cb0ac24bcee8b9cdb0b942eb56fe2a3dfc933f6e94ebc8c0274ee77cf16377e63150231985382a460b20469ef2c01)))

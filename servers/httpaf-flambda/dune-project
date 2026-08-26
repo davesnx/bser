@@ -1,0 +1,17 @@
+(lang dune 3.20)
+
+(name bench_httpaf_flambda)
+
+(package
+ (name bench_httpaf_flambda)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: http/af (Flambda)")
+ (depends
+  (ocaml
+   (= 5.5.0))
+  ocaml-option-flambda
+  (httpaf
+   (>= 0.7.1))
+  (httpaf-lwt-unix
+   (>= 0.7.1))
+  lwt))

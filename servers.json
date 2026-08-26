@@ -75,6 +75,13 @@
       "run": "_build/default/main.exe"
     },
     {
+      "name": "dream-flambda",
+      "runtime": "OCaml + Dream (lwt, Flambda)",
+      "cwd": "servers/dream-flambda",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
       "name": "opium",
       "runtime": "OCaml + Opium (http/af + lwt)",
       "cwd": "servers/opium",
@@ -87,6 +94,14 @@
       "cwd": "servers/vif",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
       "run": "_build/default/main.exe"
+    },
+    {
+      "name": "vif-multicore",
+      "runtime": "OCaml + Vif (httpcats + miou, multicore)",
+      "cwd": "servers/vif-multicore",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe",
+      "cpu_count": 4
     },
     {
       "name": "trail",
@@ -103,11 +118,41 @@
       "run": "_build/default/main.exe"
     },
     {
+      "name": "httpcats-flambda",
+      "runtime": "OCaml + httpcats (miou, Flambda)",
+      "cwd": "servers/httpcats-flambda",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "httpcats-multicore",
+      "runtime": "OCaml + httpcats (miou, multicore)",
+      "cwd": "servers/httpcats-multicore",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe",
+      "cpu_count": 4
+    },
+    {
       "name": "cohttp-eio",
       "runtime": "OCaml + Cohttp (eio)",
       "cwd": "servers/cohttp-eio",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
       "run": "_build/default/main.exe"
+    },
+    {
+      "name": "cohttp-eio-flambda",
+      "runtime": "OCaml + Cohttp (eio, Flambda)",
+      "cwd": "servers/cohttp-eio-flambda",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "cohttp-eio-multicore",
+      "runtime": "OCaml + Cohttp (eio, multicore)",
+      "cwd": "servers/cohttp-eio-multicore",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe",
+      "cpu_count": 4
     },
     {
       "name": "cohttp-lwt",
@@ -124,6 +169,14 @@
       "run": "_build/default/main.exe"
     },
     {
+      "name": "httpun-eio-multicore",
+      "runtime": "OCaml + httpun (eio, multicore)",
+      "cwd": "servers/httpun-eio-multicore",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe",
+      "cpu_count": 4
+    },
+    {
       "name": "httpun-lwt",
       "runtime": "OCaml + httpun (lwt)",
       "cwd": "servers/httpun-lwt",
@@ -138,9 +191,23 @@
       "run": "_build/default/main.exe"
     },
     {
+      "name": "httpaf-flambda",
+      "runtime": "OCaml + http/af (lwt, Flambda)",
+      "cwd": "servers/httpaf-flambda",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
       "name": "tiny-httpd",
       "runtime": "OCaml + tiny_httpd (threads)",
       "cwd": "servers/tiny-httpd",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "tiny-httpd-flambda",
+      "runtime": "OCaml + tiny_httpd (threads, Flambda)",
+      "cwd": "servers/tiny-httpd-flambda",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
       "run": "_build/default/main.exe"
     }

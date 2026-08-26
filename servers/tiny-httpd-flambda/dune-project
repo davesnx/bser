@@ -1,0 +1,14 @@
+(lang dune 3.24)
+
+(name bench_tiny_httpd_flambda)
+
+(package
+ (name bench_tiny_httpd_flambda)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: tiny_httpd (Flambda)")
+ (depends
+  (ocaml
+   (= 5.5.0))
+  ocaml-option-flambda
+  (tiny_httpd
+   (>= 0.21))))

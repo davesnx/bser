@@ -1,0 +1,15 @@
+(version 0.0.4)
+
+(build
+ (all_platforms ((action (run dune build -p %{pkg-self:name} -j %{jobs})))))
+
+(depends
+ (all_platforms
+  (ocaml dune bstr)))
+
+(source
+ (fetch
+  (url
+   https://github.com/robur-coop/cachet/releases/download/v0.0.4/cachet-0.0.4.tbz)
+  (checksum
+   sha512=8085121cf017ef5cc382dcc4e79dcfd76cb4bb7eb62269accc0ad717e683fed1caa2cc70bd2ca9a5ec9b6bd7772f751ec223362e435a4139ccfcbaa7b2d2f4e8)))

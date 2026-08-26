@@ -1,0 +1,15 @@
+(lang dune 3.20)
+
+(name bench_httpcats_multicore)
+
+(package
+ (name bench_httpcats_multicore)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: httpcats (multicore)")
+ (depends
+  (ocaml
+   (= 5.5.0))
+  httpcats
+  h1
+  (miou
+   (>= 0.3.0))))

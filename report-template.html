@@ -247,6 +247,7 @@
             <button type="button" data-filter="all" aria-pressed="true">all</button>
             <button type="button" data-filter="bun" aria-pressed="false">bun/ts</button>
             <button type="button" data-filter="ocaml" aria-pressed="false">ocaml</button>
+            <button type="button" id="multicore-toggle" aria-pressed="false">show multicore</button>
             <label><span class="note">metric </span><select id="metric"><option value="rps">req/s</option><option value="p99">p99 latency</option><option value="rss">peak RSS</option></select></label>
           </div>
         </div>
@@ -297,11 +298,18 @@
     const payload = __REPORT_DATA__;
     const environment = payload.environment;
     const config = environment.config;
-    const successful = payload.results.filter(item => item.status === "ok");
+    const fallbackServerCpus = Number.isInteger(config.server_cpu) ? [config.server_cpu] : [];
+    const results = payload.results.map(item => {
+      const serverCpus = Array.isArray(item.server_cpus) ? item.server_cpus : fallbackServerCpus;
+      return { ...item, serverCpus, multicore: serverCpus.length > 1 };
+    });
+    const successful = results.filter(item => item.status === "ok");
     const data = successful.map(item => ({
       name: item.name,
       runtime: item.runtime,
       family: item.runtime.startsWith("OCaml") ? "ocaml" : "bun",
+      serverCpus: item.serverCpus,
+      multicore: item.multicore,
       rps: item.metrics.requests_per_sec,
       avg: item.metrics.latency_ms.avg,
       p50: item.metrics.latency_ms.p50,
@@ -316,24 +324,18 @@
     const timestamp = environment.timestamp || "";
     const reportDate = timestamp.slice(0, 10);
     const isSmoke = config.duration <= 5;
-    const failed = payload.results.length - successful.length;
-    const fastest = [...data].sort((a, b) => b.rps - a.rps)[0];
-    const fastestOcaml = [...data].filter(item => item.family === "ocaml").sort((a, b) => b.rps - a.rps)[0];
-    const lowestP99 = [...data].sort((a, b) => a.p99 - b.p99)[0];
-    const totalErrors = data.reduce((sum, item) => sum + item.errors, 0);
     const dependencies = payload.dependencies || { runtimes: [], npm: [], ocaml: [] };
+    const multicoreCount = results.filter(item => item.multicore).length;
+    const serverPool = Array.isArray(config.server_cpus) ? config.server_cpus : fallbackServerCpus;
 
     document.title = `bser benchmark / ${timestamp}`;
-    document.querySelector("#lede").textContent = `A one-CPU ${isSmoke ? "smoke " : ""}comparison across ${payload.results.length} Bun, TypeScript framework, and OCaml server implementations. Every successful server returned the same validated 13-byte response.`;
-    document.querySelector("#runline").innerHTML = `<li><strong>${environment.tool}</strong> ${config.duration}s + ${config.warmup}s warmup</li><li><strong>${config.connections}</strong> connections</li><li><strong>${config.threads}</strong> load threads</li><li>server CPU <strong>${config.server_cpu}</strong></li><li>load CPUs <strong>${config.load_cpus.join(", ")}</strong></li>`;
+    document.querySelector("#lede").textContent = `A CPU-pinned ${isSmoke ? "smoke " : ""}comparison across ${results.length} Bun, TypeScript framework, and OCaml server implementations. Every successful server returned the same validated 13-byte response.`;
+    const serverAllocation = multicoreCount
+      ? `<li>single-core CPU <strong>${config.server_cpu}</strong></li><li>multicore pool <strong>${serverPool.join(", ")}</strong></li>`
+      : `<li>server CPU <strong>${config.server_cpu}</strong></li>`;
+    document.querySelector("#runline").innerHTML = `<li><strong>${environment.tool}</strong> ${config.duration}s + ${config.warmup}s warmup</li><li><strong>${config.connections}</strong> connections</li><li><strong>${config.threads}</strong> load threads</li>${serverAllocation}<li>load CPUs <strong>${config.load_cpus.join(", ")}</strong></li>`;
     document.querySelector("#run-note").textContent = isSmoke ? "Smoke data is directional, not a final ranking." : "Compare repeated runs and medians before making performance claims.";
     const summary = document.querySelector("#summary");
-    if (fastest) {
-      const ocamlSummary = fastestOcaml ? ` <strong class="ocaml-text">${fastestOcaml.name}</strong> was the fastest OCaml implementation at <strong>${Math.round(fastestOcaml.rps).toLocaleString("en-US")} req/s</strong>.` : "";
-      summary.innerHTML = `<strong class="${fastest.family}-text">${fastest.name}</strong> led throughput at <strong>${Math.round(fastest.rps).toLocaleString("en-US")} req/s</strong>.${ocamlSummary} The lowest p99 was <strong>${lowestP99.p99.toFixed(3)} ms</strong>, from ${lowestP99.name}. <span class="status-ok">${successful.length}/${payload.results.length} completed with ${totalErrors} request errors${failed ? `; ${failed} failed` : ""}.</span>`;
-    } else {
-      summary.textContent = `No server completed successfully. ${failed}/${payload.results.length} failed.`;
-    }
     document.querySelector("#source-note").innerHTML = `Source: <code>results.json</code>. ${isSmoke ? "This is a pipeline smoke run. " : ""}Use repeated 30-second runs and compare medians before making performance claims.`;
     document.querySelector("#report-date").textContent = reportDate;
     dependencies.runtimes.forEach(runtime => {
@@ -376,7 +378,9 @@
     const chart = document.querySelector("#chart");
     const rows = document.querySelector("#rows");
     const metric = document.querySelector("#metric");
+    const multicoreToggle = document.querySelector("#multicore-toggle");
     let filter = "all";
+    let showMulticore = false;
     let sortKey = "rps";
     let sortDirection = "desc";
 
@@ -388,15 +392,42 @@
       cpu: value => value.toFixed(0), errors: value => String(value)
     };
 
-    function visibleData() { return filter === "all" ? data : data.filter(item => item.family === filter); }
+    function comparisonData() {
+      return showMulticore ? data : data.filter(item => !item.multicore);
+    }
+
+    function visibleData() {
+      const items = comparisonData();
+      return filter === "all" ? items : items.filter(item => item.family === filter);
+    }
+
+    function renderSummary() {
+      const items = comparisonData();
+      const visibleResults = showMulticore ? results : results.filter(item => !item.multicore);
+      const failed = visibleResults.length - items.length;
+      if (!items.length) {
+        summary.textContent = `No server completed successfully. ${failed}/${visibleResults.length} failed.`;
+        return;
+      }
+      const fastest = [...items].sort((a, b) => b.rps - a.rps)[0];
+      const fastestOcaml = [...items].filter(item => item.family === "ocaml").sort((a, b) => b.rps - a.rps)[0];
+      const lowestP99 = [...items].sort((a, b) => a.p99 - b.p99)[0];
+      const totalErrors = items.reduce((sum, item) => sum + item.errors, 0);
+      const ocamlSummary = fastestOcaml ? ` <strong class="ocaml-text">${fastestOcaml.name}</strong> was the fastest OCaml implementation at <strong>${Math.round(fastestOcaml.rps).toLocaleString("en-US")} req/s</strong>.` : "";
+      summary.innerHTML = `<strong class="${fastest.family}-text">${fastest.name}</strong> led throughput at <strong>${Math.round(fastest.rps).toLocaleString("en-US")} req/s</strong>.${ocamlSummary} The lowest p99 was <strong>${lowestP99.p99.toFixed(3)} ms</strong>, from ${lowestP99.name}. <span class="status-ok">${items.length}/${visibleResults.length} completed with ${totalErrors} request errors${failed ? `; ${failed} failed` : ""}.</span>`;
+    }
 
     function renderChart() {
       const key = metric.value;
       const lowerIsBetter = key === "p99" || key === "rss";
       const items = [...visibleData()].sort((a, b) => lowerIsBetter ? a[key] - b[key] : b[key] - a[key]);
+      if (!items.length) {
+        chart.innerHTML = `<p class="note">No matching benchmark results.</p>`;
+        return;
+      }
       const max = Math.max(...items.map(item => item[key]));
       const label = key === "rps" ? formats.rps : key === "p99" ? value => `${value.toFixed(3)} ms` : value => `${value.toFixed(1)} MB`;
-      chart.innerHTML = items.map(item => `<div class="bar-row" data-family="${item.family}"><span class="bar-name" title="${item.runtime}">${item.name}</span><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="--size:${(item[key] / max * 100).toFixed(2)}%"></div></div><span class="bar-value">${label(item[key])}</span></div>`).join("");
+      chart.innerHTML = items.map(item => `<div class="bar-row" data-family="${item.family}"><span class="bar-name" title="${item.runtime}; CPUs ${item.serverCpus.join(", ")}">${item.name}</span><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="--size:${(item[key] / max * 100).toFixed(2)}%"></div></div><span class="bar-value">${label(item[key])}</span></div>`).join("");
     }
 
     function renderTable() {
@@ -405,7 +436,7 @@
         const result = typeof left === "string" ? left.localeCompare(right) : left - right;
         return sortDirection === "asc" ? result : -result;
       });
-      rows.innerHTML = items.map((item, index) => `<tr data-family="${item.family}"><td class="rank">${String(index + 1).padStart(2, "0")}</td><td><strong>${item.name}</strong><br><span class="family">${item.runtime}</span></td><td>${formats.rps(item.rps)}</td><td>${formats.avg(item.avg)}</td><td>${formats.p50(item.p50)}</td><td>${formats.p90(item.p90)}</td><td>${formats.p99(item.p99)}</td><td>${formats.throughput(item.throughput)}</td><td>${formats.rss(item.rss)}</td><td>${formats.cpu(item.cpu)}</td><td class="${item.errors === 0 ? "zero" : ""}">${item.errors}</td></tr>`).join("");
+      rows.innerHTML = items.map((item, index) => `<tr data-family="${item.family}"><td class="rank">${String(index + 1).padStart(2, "0")}</td><td><strong>${item.name}</strong><br><span class="family">${item.runtime}; ${item.serverCpus.length} CPU${item.serverCpus.length === 1 ? "" : "s"}</span></td><td>${formats.rps(item.rps)}</td><td>${formats.avg(item.avg)}</td><td>${formats.p50(item.p50)}</td><td>${formats.p90(item.p90)}</td><td>${formats.p99(item.p99)}</td><td>${formats.throughput(item.throughput)}</td><td>${formats.rss(item.rss)}</td><td>${formats.cpu(item.cpu)}</td><td class="${item.errors === 0 ? "zero" : ""}">${item.errors}</td></tr>`).join("");
     }
 
     document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
@@ -413,6 +444,18 @@
       document.querySelectorAll("[data-filter]").forEach(control => control.setAttribute("aria-pressed", String(control === button)));
       renderChart(); renderTable();
     }));
+
+    if (multicoreCount === 0) {
+      multicoreToggle.hidden = true;
+    } else {
+      multicoreToggle.textContent = `show multicore (${multicoreCount})`;
+      multicoreToggle.addEventListener("click", () => {
+        showMulticore = !showMulticore;
+        multicoreToggle.setAttribute("aria-pressed", String(showMulticore));
+        multicoreToggle.textContent = `${showMulticore ? "hide" : "show"} multicore (${multicoreCount})`;
+        renderSummary(); renderChart(); renderTable();
+      });
+    }
 
     metric.addEventListener("change", renderChart);
 
@@ -425,6 +468,7 @@
       renderTable();
     }));
 
+    renderSummary();
     renderChart();
     renderTable();
   </script>

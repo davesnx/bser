@@ -1,0 +1,15 @@
+(version 0.0.1~beta7)
+
+(build
+ (all_platforms ((action (run dune build -p %{pkg-self:name} -j %{jobs})))))
+
+(depends
+ (all_platforms
+  (ocaml dune miou decompress tar fmt bstr digestif angstrom ptime flux)))
+
+(source
+ (fetch
+  (url
+   https://github.com/robur-coop/flux/releases/download/v0.0.1_beta7/flux-0.0.1.beta7.tbz)
+  (checksum
+   sha512=a198e60da2575a27d6976bac2839e544312e4f5d895bc18bf3d9554396896a406a1143bcc0a28c75b992a060e0a5174a23a6688aaefaa8dd8c37f09b59364ad1)))

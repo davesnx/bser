@@ -15,21 +15,31 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `express-bun` | [Express](https://expressjs.com) on Bun |
 | `fastify-bun` | [Fastify](https://fastify.dev) on Bun |
 | `dream` | OCaml [Dream](https://aantron.github.io/dream) on Lwt |
+| `dream-flambda` | Dream built with Flambda enabled |
 | `opium` | OCaml [Opium](https://github.com/rgrinberg/opium) on http/af and Lwt |
 | `vif` | OCaml [Vif](https://robur-coop.github.io/vif/) on httpcats and Miou |
+| `vif-multicore` | Vif with four Miou domains |
 | `trail` | OCaml [Trail](https://github.com/leostera/trail), Nomad, and Riot |
 | `httpcats` | OCaml [httpcats](https://github.com/robur-coop/httpcats) on Miou |
+| `httpcats-flambda` | httpcats built with Flambda enabled |
+| `httpcats-multicore` | httpcats with four Miou accept loops |
 | `cohttp-eio` | OCaml [Cohttp](https://github.com/mirage/ocaml-cohttp) on Eio |
+| `cohttp-eio-flambda` | Cohttp Eio built with Flambda enabled |
+| `cohttp-eio-multicore` | Cohttp Eio with four domains |
 | `cohttp-lwt` | OCaml Cohttp on Lwt |
 | `httpun-eio` | OCaml [httpun](https://github.com/anmonteiro/httpun) on Eio |
+| `httpun-eio-multicore` | httpun Eio with four domains |
 | `httpun-lwt` | OCaml httpun on Lwt |
 | `httpaf` | OCaml [http/af](https://github.com/inhabitedtype/httpaf) on Lwt |
+| `httpaf-flambda` | http/af built with Flambda enabled |
 | `tiny-httpd` | OCaml [tiny_httpd](https://github.com/c-cube/tiny-httpd) with system threads |
+| `tiny-httpd-flambda` | tiny_httpd built with Flambda enabled |
 
 Every server does the same thing: `GET /` → `200 text/plain "Hello, World!"`,
 listening on `$PORT` (default 8080), single process, no logging middleware. The
-harness validates that contract before warmup and pins the server process tree
-to one logical CPU.
+harness validates that contract before warmup. Baselines and Flambda builds use
+one logical CPU. Multicore entries declare four CPUs and receive
+`BSER_CPU_COUNT=4`.
 
 Each OCaml server is its **own standalone dune project** (with its own
 `dune-project` and `dune-workspace`) using [dune package
@@ -84,7 +94,9 @@ For each server, `bench.py` reports:
   Locks are per project. Commit the generated `dune.lock/` directories if you
   want reproducible benchmark builds across machines.
 
-  Every OCaml server is locked to OCaml 5.5.0.
+  Every OCaml server is locked to OCaml 5.5.0. Flambda projects also lock
+  `ocaml-option-flambda`; their private compiler and dependencies are rebuilt
+  with Flambda enabled.
 
 - A load generator, one of (checked in this order):
   - [`oha`](https://github.com/hatoo/oha) — recommended (`cargo install oha`)
@@ -127,9 +139,11 @@ Each run writes to `results/<timestamp>/`:
 - `report.html` — a standalone interactive report,
 - `<server>.log` — stdout/stderr of each server.
 
-Servers run one at a time on the same port; each is built, pinned to one logical
-CPU, started, contract-checked, warmed up, measured, and torn down before the
-next starts. Bun processes always receive `NODE_ENV=production`.
+Servers run one at a time on the same port; each is built, pinned to its declared
+CPU count, started, contract-checked, warmed up, measured, and torn down before
+the next starts. The HTML report hides multicore results by default; use its
+**show multicore** control to include them. Bun processes always receive
+`NODE_ENV=production`.
 
 ## Methodology notes
 
@@ -139,13 +153,13 @@ next starts. Bun processes always receive `NODE_ENV=production`.
 - Load generator and server share the machine here, so they compete for
   cores. For serious numbers, run the generator from a second machine against
   the server's IP (start servers by hand with `PORT=8080 <run cmd>`).
-- The harness pins every server to one logical CPU. Use `--server-cpu` to select
-  it. The harness pins the load generator to separate logical CPUs when the
-  machine has them. The processes still share caches and memory bandwidth; use
-  a second machine for rigorous measurements.
-- All servers are intentionally single-process and single-CPU. Multicore setups (Bun
-  `reusePort` clusters, eio/miou multi-domain accept loops) are interesting
-  follow-ups but a different benchmark.
+- The harness reserves a server CPU pool large enough for the selected entries.
+  Use `--server-cpu` to select its first logical CPU. One-CPU entries use only
+  that CPU. The load generator uses a stable, disjoint CPU set.
+- Multicore results measure four OCaml domains. They are an explicit scaling
+  axis, not direct replacements for the one-CPU rankings. Logical CPU topology
+  still matters; for publishable results, choose an idle machine whose first
+  four allowed CPUs are separate physical cores.
 
 ## Status / caveats
 
@@ -161,5 +175,7 @@ next starts. Bun processes always receive `NODE_ENV=production`.
 1. Create a directory under `servers/` with the implementation. Read `$PORT`,
    respond to `GET /` with `text/plain` `Hello, World!`.
 2. Add an entry to `servers.json` with `name`, `runtime`, `cwd`, optional
-   `build`, and `run` (the command must stay in the foreground).
+   `build`, and `run` (the command must stay in the foreground). For a
+   multicore entry, add `cpu_count` and read the assigned total from
+   `$BSER_CPU_COUNT`.
 3. `python3 bench.py --servers <name> --duration 3` to try it out.

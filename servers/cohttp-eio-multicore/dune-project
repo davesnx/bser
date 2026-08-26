@@ -1,0 +1,15 @@
+(lang dune 3.24)
+
+(name bench_cohttp_eio_multicore)
+
+(package
+ (name bench_cohttp_eio_multicore)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: Cohttp Eio (multicore)")
+ (depends
+  (ocaml
+   (= 5.5.0))
+  (cohttp-eio
+   (>= 6.2.2))
+  (eio_main
+   (>= 1.1))))

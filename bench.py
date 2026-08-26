@@ -5,7 +5,7 @@ For each server declared in servers.json this script:
   1. builds it (unless --no-build),
   2. starts it with PORT set and waits for the socket to accept connections,
   3. runs a warmup load, then a measured load with oha, wrk, or autocannon,
-  4. samples RSS and CPU of the whole server process tree while it runs,
+  4. pins it to its declared CPU count and samples the whole process tree,
   5. tears the server down and writes JSON, Markdown, and HTML to results/.
 
 Only the Linux /proc filesystem is used for resource sampling.
@@ -363,6 +363,31 @@ def tail(path, lines=20):
         return ""
 
 
+def server_cpu_count(server):
+    count = server.get("cpu_count", 1)
+    if type(count) is not int or count < 1:
+        raise ValueError(f"{server['name']}: cpu_count must be a positive integer")
+    return count
+
+
+def resolve_cpu_sets(servers, available_cpus, server_cpu, load_threads):
+    max_server_cpus = max(server_cpu_count(server) for server in servers)
+    ordered_cpus = [server_cpu] + [cpu for cpu in available_cpus if cpu != server_cpu]
+    if len(ordered_cpus) < max_server_cpus:
+        raise ValueError(
+            f"multicore servers need {max_server_cpus} logical CPUs; "
+            f"only {len(ordered_cpus)} are available"
+        )
+
+    server_cpus = ordered_cpus[:max_server_cpus]
+    load_cpus = [cpu for cpu in available_cpus if cpu not in server_cpus]
+    if not load_cpus:
+        if max_server_cpus > 1:
+            raise ValueError("multicore servers need at least one separate load CPU")
+        load_cpus = server_cpus
+    return server_cpus, load_cpus[: max(1, load_threads)]
+
+
 # ---------------------------------------------------------------------------
 # Benchmark loop
 # ---------------------------------------------------------------------------
@@ -372,7 +397,14 @@ def bench_server(server, cfg, tool, log_dir, no_build):
     cwd = os.path.join(HERE, server["cwd"])
     port = cfg["port"]
     url = f"http://127.0.0.1:{port}{cfg['path']}"
-    result = {"name": name, "runtime": server.get("runtime", ""), "status": "ok"}
+    server_cpus = cfg["server_cpus"][: server_cpu_count(server)]
+    cpu_list = ",".join(str(cpu) for cpu in server_cpus)
+    result = {
+        "name": name,
+        "runtime": server.get("runtime", ""),
+        "server_cpus": server_cpus,
+        "status": "ok",
+    }
 
     print(f"\n=== {name} ({server.get('runtime', '')}) ===")
 
@@ -395,18 +427,23 @@ def bench_server(server, cfg, tool, log_dir, no_build):
     log_path = os.path.join(log_dir, f"{name}.log")
     log = open(log_path, "w")
     run_command = server["run"]
-    server_cpu = cfg["server_cpu"]
     proc = subprocess.Popen(
-        ["taskset", "--cpu-list", str(server_cpu), "sh", "-c", run_command],
+        ["taskset", "--cpu-list", cpu_list, "sh", "-c", run_command],
         cwd=cwd,
-        env={**os.environ, "NODE_ENV": "production", "PORT": str(port)},
+        env={
+            **os.environ,
+            "NODE_ENV": "production",
+            "PORT": str(port),
+            "BSER_CPU_COUNT": str(len(server_cpus)),
+        },
         stdout=log,
         stderr=subprocess.STDOUT,
         start_new_session=True,
     )
     sampler = None
     try:
-        print(f"  starting on CPU {server_cpu}: {run_command} (pid {proc.pid})")
+        label = "CPU" if len(server_cpus) == 1 else "CPUs"
+        print(f"  starting on {label} {cpu_list}: {run_command} (pid {proc.pid})")
         if not wait_port("127.0.0.1", port, timeout=60, proc=proc):
             result.update(status="start_failed", error=tail(log_path))
             print(f"  START FAILED for {name}; log tail:\n{tail(log_path)}")
@@ -522,7 +559,9 @@ def fmt_table(results, cfg, tool):
 
     note = (
         f"\nTool: {'/'.join(tool)} — {cfg['duration']}s @ {cfg['connections']} connections "
-        f"(warmup {cfg['warmup']}s), path {cfg['path']}"
+        f"(warmup {cfg['warmup']}s), path {cfg['path']}, "
+        f"server pool {','.join(str(cpu) for cpu in cfg['server_cpus'])}, "
+        f"load CPUs {','.join(str(cpu) for cpu in cfg['load_cpus'])}"
     )
     return "\n".join(md) + note, "\n".join(txt) + note
 
@@ -558,22 +597,10 @@ def main():
         if value is not None:
             cfg[key] = value
 
-    available_cpus = sorted(os.sched_getaffinity(0))
-    server_cpu = args.server_cpu if args.server_cpu is not None else available_cpus[0]
-    if server_cpu not in available_cpus:
-        parser.error(
-            f"server CPU {server_cpu} is unavailable; choose one of {available_cpus}"
-        )
-    if not shutil.which("taskset"):
-        parser.error("taskset is required to pin servers to one logical CPU")
-    cfg["server_cpu"] = server_cpu
-    load_cpus = [cpu for cpu in available_cpus if cpu != server_cpu]
-    cfg["load_cpus"] = (load_cpus or [server_cpu])[: max(1, cfg["threads"])]
-
     servers = manifest["servers"]
     if args.list:
         for s in servers:
-            print(f"{s['name']:<14} {s.get('runtime', '')}")
+            print(f"{s['name']:<24} {s.get('runtime', '')}")
         return
     if args.servers:
         wanted = [w.strip() for w in args.servers.split(",")]
@@ -582,6 +609,24 @@ def main():
         if unknown:
             sys.exit(f"error: unknown server(s): {', '.join(unknown)}")
         servers = [by_name[w] for w in wanted]
+
+    available_cpus = sorted(os.sched_getaffinity(0))
+    server_cpu = args.server_cpu if args.server_cpu is not None else available_cpus[0]
+    if server_cpu not in available_cpus:
+        parser.error(
+            f"server CPU {server_cpu} is unavailable; choose one of {available_cpus}"
+        )
+    if not shutil.which("taskset"):
+        parser.error("taskset is required to pin servers to logical CPUs")
+    try:
+        server_cpus, load_cpus = resolve_cpu_sets(
+            servers, available_cpus, server_cpu, cfg["threads"]
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
+    cfg["server_cpu"] = server_cpu
+    cfg["server_cpus"] = server_cpus
+    cfg["load_cpus"] = load_cpus
 
     tool = resolve_tool(args.tool)
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
