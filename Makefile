@@ -1,6 +1,7 @@
 .PHONY: first deps lock build bench smoke list clean
 
 BUN_SERVERS = elysia-bun bun-native hono-bun h3-bun node-http-bun express-bun fastify-bun
+NPM_SERVERS = node-http-scriptc
 OCAML_SERVERS = dream opium vif trail httpcats cohttp-eio cohttp-lwt httpun-eio httpun-lwt httpaf tiny-httpd
 
 # Start here: get a single OCaml server (dream) locked, built, and benchmarked
@@ -17,6 +18,10 @@ deps: lock
 	  echo "== bun install: $$s"; \
 	  (cd servers/$$s && bun install --frozen-lockfile) || exit 1; \
 	done
+	@for s in $(NPM_SERVERS); do \
+	  echo "== npm ci: $$s"; \
+	  (cd servers/$$s && npm ci) || exit 1; \
+	done
 
 # (Re)generate each OCaml server's own dune.lock. Each server is a standalone
 # dune project, so dependency versions are solved per server and never collide.
@@ -32,6 +37,10 @@ build:
 	@for s in $(BUN_SERVERS); do \
 	  echo "== bun install: $$s"; \
 	  (cd servers/$$s && bun install --frozen-lockfile) || exit 1; \
+	done
+	@for s in $(NPM_SERVERS); do \
+	  echo "== npm build: $$s"; \
+	  (cd servers/$$s && npm ci && npm run build) || exit 1; \
 	done
 	python3 patch-trail-lock.py
 	@for s in $(OCAML_SERVERS); do \
@@ -52,5 +61,6 @@ list:
 
 clean:
 	@for s in $(BUN_SERVERS); do rm -rf servers/$$s/node_modules; done
+	@for s in $(NPM_SERVERS); do rm -rf servers/$$s/node_modules servers/$$s/_build; done
 	rm -rf results
 	@for s in $(OCAML_SERVERS); do rm -rf servers/$$s/_build; done

@@ -1,0 +1,11 @@
+{
+  "name": "bench-node-http-scriptc",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "mkdir -p _build && scriptc build src/index.ts --backend llvm --optimization release --no-keep-c -o _build/server"
+  },
+  "dependencies": {
+    "scriptc": "0.0.35"
+  }
+}

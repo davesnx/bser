@@ -47,6 +47,13 @@
       "run": "bun src/index.ts"
     },
     {
+      "name": "node-http-scriptc",
+      "runtime": "scriptc + node:http (native TypeScript)",
+      "cwd": "servers/node-http-scriptc",
+      "build": "npm ci && npm run build",
+      "run": "_build/server"
+    },
+    {
       "name": "express-bun",
       "runtime": "Bun + Express (TypeScript)",
       "cwd": "servers/express-bun",

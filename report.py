@@ -84,17 +84,30 @@ def collect_dependency_versions():
         if package_manager.startswith("bun@"):
             bun_versions.add(package_manager.removeprefix("bun@"))
         direct_dependencies = package.get("dependencies", {})
-        lock_path = os.path.join(os.path.dirname(package_path), "bun.lock")
-        if not direct_dependencies or not os.path.exists(lock_path):
+        package_dir = os.path.dirname(package_path)
+        bun_lock_path = os.path.join(package_dir, "bun.lock")
+        npm_lock_path = os.path.join(package_dir, "package-lock.json")
+        if not direct_dependencies:
             continue
         resolved = {}
-        with open(lock_path) as lock_file:
-            for line in lock_file:
-                match = re.match(r'^\s+"[^"]+": \["([^"]+)"', line)
-                if not match or "@" not in match.group(1):
-                    continue
-                name, version = match.group(1).rsplit("@", 1)
-                _add_version(resolved, name, version)
+        if os.path.exists(bun_lock_path):
+            with open(bun_lock_path) as lock_file:
+                for line in lock_file:
+                    match = re.match(r'^\s+"[^"]+": \["([^"]+)"', line)
+                    if not match or "@" not in match.group(1):
+                        continue
+                    name, version = match.group(1).rsplit("@", 1)
+                    _add_version(resolved, name, version)
+        elif os.path.exists(npm_lock_path):
+            with open(npm_lock_path) as lock_file:
+                npm_lock = json.load(lock_file)
+            locked_packages = npm_lock.get("packages", {})
+            for name in direct_dependencies:
+                metadata = locked_packages.get(f"node_modules/{name}", {})
+                if "version" in metadata:
+                    _add_version(resolved, name, metadata["version"])
+        else:
+            continue
         for name in direct_dependencies:
             for version in resolved.get(name, []):
                 _add_version(npm_packages, name, version)

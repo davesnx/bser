@@ -11,6 +11,7 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `hono-bun` | [Hono](https://hono.dev) on Bun |
 | `h3-bun` | [H3](https://h3.dev) on Bun |
 | `node-http-bun` | Bun's `node:http` compatibility layer |
+| `node-http-scriptc` | [scriptc](https://scriptc.dev) native `node:http` implementation |
 | `express-bun` | [Express](https://expressjs.com) on Bun |
 | `fastify-bun` | [Fastify](https://fastify.dev) on Bun |
 | `dream` | OCaml [Dream](https://aantron.github.io/dream) on Lwt |
@@ -55,6 +56,8 @@ For each server, `bench.py` reports:
 - Linux (resource sampling reads `/proc`).
 - [Bun](https://bun.sh) for the TypeScript servers.
   Reports identify TypeScript 7.0.2.
+- Node.js >= 24 and clang >= 15 for the `scriptc` compiler. The compiled server
+  does not require Node.js. Zig is also supported with `SCRIPTC_CC=zigcc`.
 - System libraries used by the OCaml dependency trees — dune builds the OCaml
   side but not C depexts (libev for lwt/dream, gmp for zarith, openssl for
   ssl/tls):
