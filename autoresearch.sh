@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")" && pwd)
-server_dir="$root/servers/httpcats-multicore"
+server_dir="$root/servers/vif-multicore"
 output_dir=$(mktemp -d)
 trap 'rm -rf "$output_dir"' EXIT
 
@@ -10,7 +10,7 @@ trap 'rm -rf "$output_dir"' EXIT
 
 for run in 1 2 3 4 5; do
   python3 "$root/bench.py" \
-    --servers httpcats-multicore \
+    --servers vif-multicore \
     --duration 30 \
     --warmup 5 \
     --connections 64 \
