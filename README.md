@@ -22,7 +22,7 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `trail` | OCaml [Trail](https://github.com/leostera/trail), Nomad, and Riot |
 | `httpcats` | OCaml [httpcats](https://github.com/robur-coop/httpcats) on Miou |
 | `httpcats-flambda` | httpcats built with Flambda enabled |
-| `httpcats-multicore` | httpcats with four Miou accept loops |
+| `httpcats-multicore` | httpcats with ten Miou domains and parallel dispatch |
 | `cohttp-eio` | OCaml [Cohttp](https://github.com/mirage/ocaml-cohttp) on Eio |
 | `cohttp-eio-flambda` | Cohttp Eio built with Flambda enabled |
 | `cohttp-eio-multicore` | Cohttp Eio with four domains |
@@ -38,8 +38,8 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 Every server does the same thing: `GET /` → `200 text/plain "Hello, World!"`,
 listening on `$PORT` (default 8080), single process, no logging middleware. The
 harness validates that contract before warmup. Baselines and Flambda builds use
-one logical CPU. Multicore entries declare four CPUs and receive
-`BSER_CPU_COUNT=4`.
+one logical CPU. Multicore entries declare their CPU count and receive it in
+`BSER_CPU_COUNT`.
 
 Each OCaml server is its **own standalone dune project** (with its own
 `dune-project` and `dune-workspace`) using [dune package
@@ -156,10 +156,10 @@ the next starts. The HTML report hides multicore results by default; use its
 - The harness reserves a server CPU pool large enough for the selected entries.
   Use `--server-cpu` to select its first logical CPU. One-CPU entries use only
   that CPU. The load generator uses a stable, disjoint CPU set.
-- Multicore results measure four OCaml domains. They are an explicit scaling
-  axis, not direct replacements for the one-CPU rankings. Logical CPU topology
-  still matters; for publishable results, choose an idle machine whose first
-  four allowed CPUs are separate physical cores.
+- Multicore results use each entry's declared OCaml domain count. httpcats uses
+  ten; the other multicore entries use four. They are an explicit scaling axis,
+  not direct replacements for the one-CPU rankings. Logical CPU topology still
+  matters; use separate physical cores for publishable results.
 
 ## Status / caveats
 

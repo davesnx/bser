@@ -16,7 +16,7 @@ Flambda and multicore entries remain ordinary server names:
 python3 bench.py --servers httpcats,httpcats-flambda,httpcats-multicore
 ```
 
-A multicore manifest entry declares `"cpu_count": 4`. The harness records the
+A multicore manifest entry declares its `cpu_count`. The harness records the
 exact `server_cpus` list in its result and sets `BSER_CPU_COUNT` for the server.
 The report hides results with more than one server CPU until the reader enables
 **show multicore**.
@@ -46,7 +46,8 @@ those facts.
 ## Tradeoffs accepted
 
 - We accept duplicate projects and locks for ABI-safe compiler comparisons.
-- We accept a fixed four-CPU multicore size for a stable published axis.
+- We accept explicit per-entry CPU counts for stable, reproducible scaling
+  points.
 - We accept longer lock and build times instead of sharing incompatible OCaml
   artifacts.
 - We do not add Flambda-plus-multicore combinations in this matrix.

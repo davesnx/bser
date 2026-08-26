@@ -130,7 +130,7 @@
       "cwd": "servers/httpcats-multicore",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
       "run": "_build/default/main.exe",
-      "cpu_count": 4
+      "cpu_count": 10
     },
     {
       "name": "cohttp-eio",

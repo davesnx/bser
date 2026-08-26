@@ -27,7 +27,7 @@ let () =
   let worker_domains = total_domains - 1 in
   let sockaddr = Unix.(ADDR_INET (inet_addr_any, port)) in
   let serve () =
-    Httpcats.Server.clear ~parallel:false ~handler
+    Httpcats.Server.clear ~parallel:true ~handler
       (Httpcats.Server.Bind sockaddr)
   in
   Miou_unix.run ~domains:worker_domains @@ fun () ->

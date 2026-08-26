@@ -156,7 +156,7 @@
 
     .table-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--bg); }
 
-    table { width: 100%; min-width: 82rem; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    table { width: 100%; min-width: 76rem; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 
     th, td { padding: 0.72rem 0.8rem; border-bottom: 1px solid var(--line); text-align: right; }
     th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
@@ -252,7 +252,7 @@
       </section>
 
       <section aria-labelledby="table-title">
-        <div class="section-head"><h2 id="table-title">Full result set</h2><p class="note">Select a heading to sort.</p></div>
+        <div class="section-head"><h2 id="table-title">Full result set</h2></div>
         <div class="table-wrap">
           <table>
             <thead><tr>
@@ -266,7 +266,6 @@
               <th scope="col" data-key="throughput"><button type="button">MB/s</button></th>
               <th scope="col" data-key="rss"><button type="button">RSS MB</button></th>
               <th scope="col" data-key="cpu"><button type="button">CPU %</button></th>
-              <th scope="col" data-key="errors"><button type="button">errors</button></th>
             </tr></thead>
             <tbody id="rows"></tbody>
           </table>
@@ -430,7 +429,7 @@
         const result = typeof left === "string" ? left.localeCompare(right) : left - right;
         return sortDirection === "asc" ? result : -result;
       });
-      rows.innerHTML = items.map((item, index) => `<tr data-family="${item.family}"><td class="rank">${String(index + 1).padStart(2, "0")}</td><td><strong>${item.name}</strong><br><span class="family">${item.runtime}; ${item.serverCpus.length} CPU${item.serverCpus.length === 1 ? "" : "s"}</span></td><td>${formats.rps(item.rps)}</td><td>${formats.avg(item.avg)}</td><td>${formats.p50(item.p50)}</td><td>${formats.p90(item.p90)}</td><td>${formats.p99(item.p99)}</td><td>${formats.throughput(item.throughput)}</td><td>${formats.rss(item.rss)}</td><td>${formats.cpu(item.cpu)}</td><td class="${item.errors === 0 ? "zero" : ""}">${item.errors}</td></tr>`).join("");
+      rows.innerHTML = items.map((item, index) => `<tr data-family="${item.family}"><td class="rank">${String(index + 1).padStart(2, "0")}</td><td><strong>${item.name}</strong><br><span class="family">${item.runtime}; ${item.serverCpus.length} CPU${item.serverCpus.length === 1 ? "" : "s"}</span></td><td>${formats.rps(item.rps)}</td><td>${formats.avg(item.avg)}</td><td>${formats.p50(item.p50)}</td><td>${formats.p90(item.p90)}</td><td>${formats.p99(item.p99)}</td><td>${formats.throughput(item.throughput)}</td><td>${formats.rss(item.rss)}</td><td>${formats.cpu(item.cpu)}</td></tr>`).join("");
     }
 
     document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
