@@ -12,11 +12,12 @@
 - `parallel:true` can add a second cross-domain dispatch after accept.
 - Eight domains use this host more efficiently than ten and improve both
   throughput and tail latency.
+- Domain-local accept loops add a further 9.2% on the eight-domain setup.
 
 ## Next Ideas
 
-- Combine eight domains with `parallel:false` domain-local accept loops.
 - Sweep six and seven domains after testing the safe combination.
+- Test the upstream httpcats `backlog:4096` setting.
 - Compare explicit Flambda optimization levels in a later focused session.
 
 ### Run 1, batch 0: baseline - requests_per_sec=204346.99 (KEEP)
@@ -67,3 +68,16 @@
 - Insight: Ten domains exceeded the useful scaling point for this workload on
   this host. Eight domains increased throughput while using less CPU and memory.
 - Next: Test the safe combination with domain-local accept loops.
+
+### Run 5, batch 1: eight_domains_local_accept - requests_per_sec=310832.19 (KEEP)
+
+- Timestamp: 2026-08-26 14:05 UTC
+- Base: `36d1249`
+- Candidate: `566abe7d1e3e592601825d64bfbad2f9b4e908c70d49e3fdea1d2d35e7f6777f`
+- Files: `README.md`, `servers/httpcats-multicore/main.ml`
+- Result: 310,832.19 req/s (+52.1% vs baseline, +9.2% vs prior best),
+  p99 5.19 ms, peak RSS 71,921,664 bytes, CPU 731.52%, 0 errors
+- Samples: 310,832.19; 299,913.43; 311,799.94; 313,247.10; 184,451.45
+- Insight: Domain-local handling and the lower domain count address separate
+  costs and combine successfully.
+- Next: Sweep nearby domain counts and test the upstream listen backlog.

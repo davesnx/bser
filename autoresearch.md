@@ -61,3 +61,6 @@ outputs `METRIC name=value` lines.
   and remain a safe combination candidate because they change a separate file.
 - Reusing one response value regressed throughput by 1.8% and p99 latency by
   9.1%; do not repeat this shape without allocation-profile evidence.
+- Combining eight domains with domain-local accept loops confirmed at
+  310,832.19 req/s, 52.1% above the original baseline and 9.2% above eight
+  domains alone. This is the current best configuration.
