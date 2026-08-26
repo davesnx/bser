@@ -14,11 +14,11 @@
   throughput and tail latency.
 - Domain-local accept loops add a further 9.2% on the eight-domain setup.
 - Six and seven domains improve p99 latency but give up throughput.
+- A 1M-word minor heap gives a large throughput gain at a moderate memory cost.
 
 ## Next Ideas
 
-- Test nine domains with domain-local handling.
-- Measure selected minor-heap sizes before changing GC defaults.
+- Test a 2M-word minor heap to map the throughput-memory tradeoff.
 - Compare explicit Flambda optimization levels in a later focused session.
 
 ### Run 1, batch 0: baseline - requests_per_sec=204346.99 (KEEP)
@@ -116,3 +116,48 @@
 - Insight: The explicit backlog is equivalent within noise and adds no value at
   64 persistent connections.
 - Next: Keep the default backlog.
+
+### Run 9, batch 3: nine_domains - requests_per_sec=186003.63 (DISCARD)
+
+- Timestamp: 2026-08-26 14:46 UTC
+- Base: `5183c4c`
+- Candidate: `712b86e1b72bab0c146cf5606fcc0e48e319abab9bd3aabb22240f13d1bbe6c8`
+- Files: `README.md`, `servers.json`
+- Result: 186,003.63 req/s (-40.2% vs best), p99 12.67 ms,
+  peak RSS 77,795,328 bytes, CPU 777.37%, 0 errors
+- Insight: Nine domains cross a sharp contention boundary for this workload.
+- Next: Keep eight domains.
+
+### Run 10, batch 3: minor_heap_1m - requests_per_sec=374169.25 (KEEP)
+
+- Timestamp: 2026-08-26 14:46 UTC
+- Base: `5183c4c`
+- Candidate: `e782a02eddc14e6f9a2544cca5300058c4efff50b27e1e1cea99adb5dd9318d6`
+- Files: `README.md`, `servers.json`
+- Result: 374,169.25 req/s (+83.1% vs baseline, +20.4% vs prior best),
+  p99 4.22 ms, peak RSS 121,995,264 bytes, CPU 752.35%, 0 errors
+- Samples: 374,169.25; 370,293.47; 386,252.84; 355,909.65; 376,238.77
+- Insight: Minor collections were limiting throughput. A 1M-word heap gives a
+  large gain while keeping memory near 122 MB.
+- Next: Keep this setting and profile GC events before further tuning.
+
+### Run 11, batch 3: minor_heap_4m - requests_per_sec=396189.56 (DISCARD)
+
+- Timestamp: 2026-08-26 14:46 UTC
+- Base: `5183c4c`
+- Candidate: `04ac03c24e4d1ed1110ee92b17728757af80a69c3c60df295566ce833294c8d8`
+- Files: `servers.json`
+- Result: 396,189.56 req/s (+5.9% vs accepted 1M result), p99 3.40 ms,
+  peak RSS 324,927,488 bytes, CPU 772.53%, 0 errors
+- Insight: The small added throughput does not justify a 2.7x increase over the
+  1M candidate's memory use.
+- Next: Reject because it breaches the no-severe-memory-regression constraint.
+
+## Stop Summary
+
+- Stop reason: the remaining time budget cannot fit another five-run candidate
+  plus coordinator confirmation.
+- Final accepted result: 374,169.25 req/s, 83.1% above baseline.
+- Confidence: 2.7x the measured cross-experiment noise floor.
+- Untested: 2M minor heap, GC runtime-event profiling, and focused Flambda
+  optimization-level variants.

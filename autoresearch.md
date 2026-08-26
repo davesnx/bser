@@ -68,3 +68,11 @@ outputs `METRIC name=value` lines.
   useful scaling point is eight for this workload on this host.
 - An explicit listen backlog of 4096 was 0.6% slower, which is within noise;
   keep the simpler default.
+- Nine domains were 40.2% slower than the eight-domain best and increased p99
+  latency to 12.67 ms.
+- A one-megaword minor heap confirmed at 374,169.25 req/s, 83.1% above the
+  original baseline and 20.4% above the prior best. Peak RSS increased from
+  71.92 to 122.00 MB.
+- A four-megaword minor heap was only 5.9% faster than the confirmed 1M result
+  but raised peak RSS to 324.93 MB, so it was rejected as a severe memory
+  regression.
