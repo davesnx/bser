@@ -1,0 +1,1 @@
+{"type":"config","name":"improve-ocaml-httpcats-multicore","metricName":"requests_per_sec","metricUnit":"req/s","bestDirection":"higher","target":null,"maxExperiments":12,"plateauBatches":2,"timeBudgetMinutes":90,"parallelExperiments":3}
