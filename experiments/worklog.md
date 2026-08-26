@@ -13,11 +13,12 @@
 - Eight domains use this host more efficiently than ten and improve both
   throughput and tail latency.
 - Domain-local accept loops add a further 9.2% on the eight-domain setup.
+- Six and seven domains improve p99 latency but give up throughput.
 
 ## Next Ideas
 
-- Sweep six and seven domains after testing the safe combination.
-- Test the upstream httpcats `backlog:4096` setting.
+- Test nine domains with domain-local handling.
+- Measure selected minor-heap sizes before changing GC defaults.
 - Compare explicit Flambda optimization levels in a later focused session.
 
 ### Run 1, batch 0: baseline - requests_per_sec=204346.99 (KEEP)
@@ -81,3 +82,37 @@
 - Insight: Domain-local handling and the lower domain count address separate
   costs and combine successfully.
 - Next: Sweep nearby domain counts and test the upstream listen backlog.
+
+### Run 6, batch 2: six_domains - requests_per_sec=278929.84 (DISCARD)
+
+- Timestamp: 2026-08-26 14:25 UTC
+- Base: `5183c4c`
+- Candidate: `83850bf5935c72005c06bf0ba664b1eb242adac20700c338444c48c70bd9f9e4`
+- Files: `README.md`, `servers.json`
+- Result: 278,929.84 req/s (-10.3% vs best), p99 4.38 ms,
+  peak RSS 58,347,520 bytes, CPU 562.16%, 0 errors
+- Insight: Six domains trade throughput for lower resource use and tail latency.
+- Next: Keep eight domains for the throughput objective.
+
+### Run 7, batch 2: seven_domains - requests_per_sec=302803.75 (DISCARD)
+
+- Timestamp: 2026-08-26 14:25 UTC
+- Base: `5183c4c`
+- Candidate: `bbdbf6779185a2290daa0766e540f72ef558c2f294c18ca9dd09d92802852845`
+- Files: `README.md`, `servers.json`
+- Result: 302,803.75 req/s (-2.6% vs best), p99 4.67 ms,
+  peak RSS 64,753,664 bytes, CPU 649.46%, 0 errors
+- Insight: Seven domains are close, but do not beat the eight-domain median.
+- Next: Keep eight domains.
+
+### Run 8, batch 2: backlog_4096 - requests_per_sec=308924.85 (DISCARD)
+
+- Timestamp: 2026-08-26 14:25 UTC
+- Base: `5183c4c`
+- Candidate: `3de592036211da23b2172fc7e7bd7ed6f6ce12f9d53373e3f518f3dc781dcd88`
+- Files: `servers/httpcats-multicore/main.ml`
+- Result: 308,924.85 req/s (-0.6% vs best), p99 4.82 ms,
+  peak RSS 71,745,536 bytes, CPU 737.38%, 0 errors
+- Insight: The explicit backlog is equivalent within noise and adds no value at
+  64 persistent connections.
+- Next: Keep the default backlog.

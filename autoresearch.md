@@ -64,3 +64,7 @@ outputs `METRIC name=value` lines.
 - Combining eight domains with domain-local accept loops confirmed at
   310,832.19 req/s, 52.1% above the original baseline and 9.2% above eight
   domains alone. This is the current best configuration.
+- Six and seven domains were 10.3% and 2.6% slower than eight domains. The
+  useful scaling point is eight for this workload on this host.
+- An explicit listen backlog of 4096 was 0.6% slower, which is within noise;
+  keep the simpler default.
