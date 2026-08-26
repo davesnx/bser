@@ -22,7 +22,7 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `trail` | OCaml [Trail](https://github.com/leostera/trail), Nomad, and Riot |
 | `httpcats` | OCaml [httpcats](https://github.com/robur-coop/httpcats) on Miou |
 | `httpcats-flambda` | httpcats built with Flambda enabled |
-| `httpcats-multicore` | httpcats with ten Miou domains and parallel dispatch |
+| `httpcats-multicore` | httpcats with eight Miou domains and parallel dispatch |
 | `cohttp-eio` | OCaml [Cohttp](https://github.com/mirage/ocaml-cohttp) on Eio |
 | `cohttp-eio-flambda` | Cohttp Eio built with Flambda enabled |
 | `cohttp-eio-multicore` | Cohttp Eio with four domains |
@@ -157,7 +157,7 @@ the next starts. The HTML report hides multicore results by default; use its
   Use `--server-cpu` to select its first logical CPU. One-CPU entries use only
   that CPU. The load generator uses a stable, disjoint CPU set.
 - Multicore results use each entry's declared OCaml domain count. httpcats uses
-  ten; the other multicore entries use four. They are an explicit scaling axis,
+  eight; the other multicore entries use four. They are an explicit scaling axis,
   not direct replacements for the one-CPU rankings. Logical CPU topology still
   matters; use separate physical cores for publishable results.
 
