@@ -57,3 +57,8 @@ check, so no separate correctness script is needed.
 - The httpcats session showed that domain-count scaling was non-linear and a
   1M-word minor heap improved throughput with a clear memory tradeoff. These are
   hypotheses for Vif, not assumed defaults.
+- Eight domains confirmed at 281,222.19 req/s, 55.0% above the four-domain
+  baseline. Six domains improved throughput by 25.2%, while two domains reduced
+  throughput by 52.8%.
+- The accepted eight-domain result uses 84.33 MB peak RSS, below the segment's
+  113.28 MB limit.
