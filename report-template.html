@@ -25,6 +25,7 @@
       --ocaml: oklch(0.78 0.15 65);
       --ok: oklch(0.78 0.15 145);
       --focus: oklch(0.84 0.13 90);
+      --z-tooltip: 30;
       --font: "Google Sans Code", ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, monospace;
     }
 
@@ -168,6 +169,22 @@
     th[aria-sort="ascending"] button::after { content: " ↑"; color: var(--primary); }
     th[aria-sort="descending"] button::after { content: " ↓"; color: var(--primary); }
 
+    .column-tooltip {
+      position: fixed;
+      z-index: var(--z-tooltip);
+      max-width: min(19rem, calc(100vw - 1rem));
+      padding: 0.45rem 0.6rem;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--ink);
+      box-shadow: 0 0.55rem 1.5rem oklch(0.08 0 0 / 0.4);
+      font-size: 0.78rem;
+      font-weight: 400;
+      line-height: 1.4;
+      text-align: left;
+      pointer-events: none;
+    }
+
     .rank { color: var(--faint); }
     .family { color: var(--faint); }
     tbody tr[data-family="bun"] strong { color: var(--bun); }
@@ -256,20 +273,21 @@
         <div class="table-wrap">
           <table>
             <thead><tr>
-              <th scope="col">#</th>
-              <th scope="col" data-key="name"><button type="button">server</button></th>
-              <th scope="col" data-key="rps" aria-sort="descending"><button type="button">req/s</button></th>
-              <th scope="col" data-key="avg"><button type="button">avg ms</button></th>
-              <th scope="col" data-key="p50"><button type="button">p50 ms</button></th>
-              <th scope="col" data-key="p90"><button type="button">p90 ms</button></th>
-              <th scope="col" data-key="p99"><button type="button">p99 ms</button></th>
-              <th scope="col" data-key="throughput"><button type="button">MB/s</button></th>
-              <th scope="col" data-key="rss"><button type="button">RSS MB</button></th>
-              <th scope="col" data-key="cpu"><button type="button">CPU %</button></th>
+              <th scope="col" aria-label="Rank after the current filters and sort" data-tooltip="Rank after the current filters and sort.">#</th>
+              <th scope="col" data-key="name" data-tooltip="Implementation and runtime. Select to sort by server name."><button type="button" aria-label="Server implementation and runtime. Activate to sort by name.">server</button></th>
+              <th scope="col" data-key="rps" aria-sort="descending" data-tooltip="Completed HTTP requests per second. Higher is better."><button type="button" aria-label="Requests per second. Higher is better. Activate to sort.">req/s</button></th>
+              <th scope="col" data-key="avg" data-tooltip="Mean response latency in milliseconds. Lower is better."><button type="button" aria-label="Average response latency in milliseconds. Lower is better. Activate to sort.">avg ms</button></th>
+              <th scope="col" data-key="p50" data-tooltip="Median latency. 50% of requests finished at or below this time."><button type="button" aria-label="50th percentile latency in milliseconds. Lower is better. Activate to sort.">p50 ms</button></th>
+              <th scope="col" data-key="p90" data-tooltip="90% of requests finished at or below this latency."><button type="button" aria-label="90th percentile latency in milliseconds. Lower is better. Activate to sort.">p90 ms</button></th>
+              <th scope="col" data-key="p99" data-tooltip="99% of requests finished at or below this latency. Shows the slow tail."><button type="button" aria-label="99th percentile latency in milliseconds. Lower is better. Activate to sort.">p99 ms</button></th>
+              <th scope="col" data-key="throughput" data-tooltip="HTTP response bytes transferred per second, in decimal megabytes."><button type="button" aria-label="Throughput in decimal megabytes per second. Higher is better. Activate to sort.">MB/s</button></th>
+              <th scope="col" data-key="rss" data-tooltip="Peak resident memory used by the server process tree."><button type="button" aria-label="Peak resident memory in decimal megabytes. Lower is better. Activate to sort.">RSS MB</button></th>
+              <th scope="col" data-key="cpu" data-tooltip="Server process-tree CPU use. 100% equals one fully used logical CPU."><button type="button" aria-label="Server CPU use. 100 percent equals one logical CPU. Activate to sort.">CPU %</button></th>
             </tr></thead>
             <tbody id="rows"></tbody>
           </table>
         </div>
+        <div class="column-tooltip" id="column-tooltip" role="tooltip" hidden></div>
       </section>
     </main>
 
@@ -367,6 +385,7 @@
     const metric = document.querySelector("#metric");
     const multicoreToggle = document.querySelector("#multicore-toggle");
     const flambdaToggle = document.querySelector("#flambda-toggle");
+    const columnTooltip = document.querySelector("#column-tooltip");
     let filter = "all";
     let showMulticore = false;
     let showFlambda = true;
@@ -463,6 +482,36 @@
     }
 
     metric.addEventListener("change", renderChart);
+
+    function showColumnTooltip(header) {
+      columnTooltip.textContent = header.dataset.tooltip;
+      columnTooltip.hidden = false;
+      const headerBox = header.getBoundingClientRect();
+      const tooltipBox = columnTooltip.getBoundingClientRect();
+      const left = Math.min(
+        Math.max(headerBox.left + headerBox.width / 2 - tooltipBox.width / 2, 8),
+        window.innerWidth - tooltipBox.width - 8
+      );
+      const below = headerBox.bottom + 8;
+      const top = below + tooltipBox.height <= window.innerHeight - 8
+        ? below
+        : headerBox.top - tooltipBox.height - 8;
+      columnTooltip.style.left = `${left}px`;
+      columnTooltip.style.top = `${Math.max(top, 8)}px`;
+    }
+
+    function hideColumnTooltip() {
+      columnTooltip.hidden = true;
+    }
+
+    document.querySelectorAll("th[data-tooltip]").forEach(header => {
+      header.addEventListener("pointerenter", () => showColumnTooltip(header));
+      header.addEventListener("pointerleave", hideColumnTooltip);
+      header.addEventListener("focusin", () => showColumnTooltip(header));
+      header.addEventListener("focusout", hideColumnTooltip);
+    });
+    window.addEventListener("resize", hideColumnTooltip);
+    window.addEventListener("scroll", hideColumnTooltip, true);
 
     document.querySelectorAll("th[data-key]").forEach(header => header.querySelector("button").addEventListener("click", () => {
       const nextKey = header.dataset.key;
