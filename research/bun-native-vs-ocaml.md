@@ -1,4 +1,4 @@
-# Why `bun-native` is faster than the fastest one-core OCaml server
+# Bun's static-route optimization versus OCaml native code
 
 > Historical result: this note explains the `bun-native` static-route benchmark
 > published on 2026-08-26. The active benchmark now uses `bun-fetch-native`,
@@ -6,8 +6,9 @@
 
 ## Question
 
-Why did `bun-native` beat OCaml code compiled to native machine code, and does
-the result show that interpreted code is faster than machine code?
+Why did the original `bun-native` benchmark beat OCaml code compiled to native
+machine code? What happens when the benchmark bypasses Bun's static-route
+optimization?
 
 ## Short answer
 
@@ -26,6 +27,10 @@ allocating another response for each request.
 The result therefore compares two complete HTTP paths, not only two language
 execution models. Bun wins this small fixed-response test because its measured
 path does less work per request.
+
+A controlled follow-up confirms that the static route matters. Replacing it
+with a `fetch` callback and creating a `Response` for each request reduced Bun
+throughput by 34.3%. Bun still led `httpaf-flambda` by 7.4% in the same run.
 
 ## Measured result
 
@@ -51,6 +56,70 @@ does not make an HTTP server faster.
 
 Source: `results/2026-08-26T12-39-22Z/results.md` and
 `results/2026-08-26T12-39-22Z/results.json`.
+
+## Result after bypassing the static route
+
+The active `bun-fetch-native` server does not define `routes`. It invokes a
+JavaScript `fetch` callback and creates a response for each request:
+
+```ts
+Bun.serve({
+  fetch: () => new Response(body, { headers }),
+});
+```
+
+Source:
+[`servers/bun-fetch-native/src/index.ts`](../servers/bun-fetch-native/src/index.ts).
+
+### A shared response does not work with `fetch`
+
+The first attempt used `fetch: () => response`, where `response` was created
+once at startup. Bun sent the first response, then rejected later uses because
+a response body is single-use. A 3-second run produced 560,822 responses, and
+all 560,822 were non-2xx responses. Bun logged:
+
+```text
+TypeError: Response body already used. A Response body can only be sent once;
+create a new Response for each request.
+```
+
+This attempt is invalid benchmark data. The valid follow-up creates a new
+`Response` for each request.
+
+### Controlled result
+
+The static and fetch variants ran five minutes apart on the same machine. Both
+used Bun 1.4.0, one server CPU, the same load CPUs, `wrk`, 30 seconds, 64
+connections, four threads, and a 5-second warmup. The static control used
+commit `c5f15af`. The fetch variant used the active server from commit
+`8bd6f11`.
+
+| Server | Request path | Requests/s | Average latency | p99 latency | Peak RSS |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `bun-native` | Static route with a cached `Response` | 374,241 | 0.207 ms | 0.318 ms | 23.6 MB |
+| `bun-fetch-native` | `fetch` callback with a new `Response` | 246,067 | 0.261 ms | 0.426 ms | 40.4 MB |
+| `httpaf-flambda` | OCaml native code, `http/af` and Lwt | 229,205 | 0.280 ms | 0.450 ms | 12.0 MB |
+
+Bypassing the static route reduced Bun throughput by 34.3%. The static route
+processed 52.1% more requests per second than the fetch handler. The fetch
+handler also had 26.0% higher average latency, 34.0% higher p99 latency, and
+71.4% higher peak memory.
+
+`bun-fetch-native` and `httpaf-flambda` ran together. Bun processed 7.4% more
+requests per second, with 6.8% lower average latency and 5.3% lower p99 latency.
+Bun used 3.4 times as much peak memory.
+
+Run the active comparison with:
+
+```sh
+python3 bench.py --servers bun-fetch-native,httpaf-flambda \
+  --duration 30 --warmup 5 --connections 64 --threads 4
+```
+
+The original published run used load CPUs 10 through 13. This controlled run
+used load CPUs 1 through 4. Do not compare their absolute request rates. The
+static and fetch variants in the controlled experiment used the same CPU set,
+so their relative result is the useful measurement.
 
 ## Why Bun has the shorter path
 
@@ -104,9 +173,12 @@ Bun uses JavaScriptCore. JavaScriptCore first produces bytecode, then executes
 that bytecode with an interpreter or a JIT compiler. The JIT can turn hot code
 into architecture-specific machine code at runtime.
 
-In this benchmark, that distinction is less important than it first appears.
-The TypeScript setup code runs at startup, while Bun's native server, router,
-HTTP parser, and cached-response path do most of the repeated request work.
+In the original static-route benchmark, that distinction is less important
+than it first appears. The TypeScript setup code runs at startup, while Bun's
+native server, router, HTTP parser, and cached-response path do most of the
+repeated request work. The fetch experiment adds a JavaScript callback and
+per-request response creation, but Bun's native HTTP stack still handles the
+network and protocol work.
 
 Source: [Bun runtime documentation](https://bun.sh/docs/runtime) and
 [Bun bytecode documentation](https://bun.sh/docs/bundler/bytecode#what-is-bytecode).
@@ -148,10 +220,14 @@ comparison with the one-CPU Bun result. It shows that OCaml can exceed Bun's
 total throughput when the server receives more cores. The one-core comparison
 uses `httpaf-flambda` because it keeps CPU allocation equal.
 
-## What the benchmark proves
+## What the benchmark shows
 
 - On this machine and workload, Bun's static `Bun.serve` route is faster than
-  every one-core OCaml stack in the run.
+  every one-core OCaml stack in the published run.
+- Bypassing the static route reduced Bun throughput by 34.3% in the controlled
+  follow-up.
+- Without that optimization, Bun led `httpaf-flambda` by 7.4% in their same-run
+  comparison.
 - Ahead-of-time native compilation does not guarantee the fastest complete
   request path.
 - A specialized native fast path can matter more than the source language.
@@ -161,14 +237,11 @@ uses `httpaf-flambda` because it keeps CPU allocation equal.
 
 ## Follow-up tests
 
-To isolate the causes, run these comparisons on one CPU with several repetitions:
+To strengthen the result, run these comparisons on one CPU:
 
-1. Measure the active `bun-fetch-native` server. It adds a JavaScript callback
-   and creates a response for each request.
+1. Repeat the static and fetch variants in alternating order, then compare their
+   medians. One pair of runs cannot establish a stable percentage.
 2. Add an OCaml server with a lower-level fixed-response path that avoids Lwt
    and minimizes per-request construction.
 3. Compare medians and inspect allocations, CPU profiles, and system-call
    counts. Requests per second alone cannot identify which layer costs time.
-
-These tests would measure the static-route advantage directly instead of
-inferring it from different server stacks.
