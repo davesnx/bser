@@ -19,9 +19,9 @@
       "run": "bun src/index.ts"
     },
     {
-      "name": "bun-native",
-      "runtime": "Bun.serve (TypeScript)",
-      "cwd": "servers/bun-native",
+      "name": "bun-fetch-native",
+      "runtime": "Bun.serve fetch (TypeScript)",
+      "cwd": "servers/bun-fetch-native",
       "build": "bun install --frozen-lockfile",
       "run": "bun src/index.ts"
     },

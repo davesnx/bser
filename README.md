@@ -7,7 +7,7 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | Server | Stack |
 | --- | --- |
 | `elysia-bun` | [Elysia](https://elysiajs.com) on Bun |
-| `bun-native` | Native [`Bun.serve`](https://bun.com/docs/runtime/http/server) |
+| `bun-fetch-native` | Native [`Bun.serve`](https://bun.com/docs/runtime/http/server) fetch handler |
 | `hono-bun` | [Hono](https://hono.dev) on Bun |
 | `h3-bun` | [H3](https://h3.dev) on Bun |
 | `node-http-bun` | Bun's `node:http` compatibility layer |
@@ -128,7 +128,7 @@ Or drive `bench.py` directly:
 ```sh
 python3 bench.py --duration 60 --connections 256 --tool oha
 python3 bench.py --servers dream,httpaf --no-build
-python3 bench.py --server-cpu 2 --servers bun-native,httpaf
+python3 bench.py --server-cpu 2 --servers bun-fetch-native,httpaf
 python3 bench.py --list
 ```
 

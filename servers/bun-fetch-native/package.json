@@ -1,5 +1,5 @@
 {
-  "name": "bench-bun-native",
+  "name": "bench-bun-fetch-native",
   "private": true,
   "type": "module",
   "packageManager": "bun@1.4.0",

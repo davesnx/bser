@@ -1,5 +1,9 @@
 # Why `bun-native` is faster than the fastest one-core OCaml server
 
+> Historical result: this note explains the `bun-native` static-route benchmark
+> published on 2026-08-26. The active benchmark now uses `bun-fetch-native`,
+> which creates a response for each call to its `fetch` handler.
+
 ## Question
 
 Why did `bun-native` beat OCaml code compiled to native machine code, and does
@@ -73,7 +77,7 @@ dispatch. Its router builds on uWebSockets' tree-based router. This means that
 the successful request does not enter the fallback `fetch` function and does
 not call an application route function.
 
-Source: [`servers/bun-native/src/index.ts`](../servers/bun-native/src/index.ts) and
+Source: [`servers/bun-native/src/index.ts` at the measured revision](https://github.com/davesnx/bser/blob/c5f15af/servers/bun-native/src/index.ts) and
 [Bun 1.4.0 routing documentation](https://github.com/oven-sh/bun/blob/bun-v1.4.0/docs/runtime/http/routing.mdx#static-responses).
 
 ### 2. The OCaml path creates and dispatches a response for each request
@@ -159,13 +163,11 @@ uses `httpaf-flambda` because it keeps CPU allocation equal.
 
 To isolate the causes, run these comparisons on one CPU with several repetitions:
 
-1. Change Bun's static route to `GET: () => response`. This adds a JavaScript
-   callback while keeping the same response object.
-2. Change it again to `GET: () => new Response(body, { headers })`. This adds
-   per-request response creation.
-3. Add an OCaml server with a lower-level fixed-response path that avoids Lwt
+1. Measure the active `bun-fetch-native` server. It adds a JavaScript callback
+   and creates a response for each request.
+2. Add an OCaml server with a lower-level fixed-response path that avoids Lwt
    and minimizes per-request construction.
-4. Compare medians and inspect allocations, CPU profiles, and system-call
+3. Compare medians and inspect allocations, CPU profiles, and system-call
    counts. Requests per second alone cannot identify which layer costs time.
 
 These tests would measure the static-route advantage directly instead of

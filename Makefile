@@ -1,6 +1,6 @@
 .PHONY: first deps lock build bench smoke list clean
 
-BUN_SERVERS = elysia-bun bun-native hono-bun h3-bun node-http-bun express-bun fastify-bun
+BUN_SERVERS = elysia-bun bun-fetch-native hono-bun h3-bun node-http-bun express-bun fastify-bun
 NPM_SERVERS = node-http-scriptc
 OCAML_BASE_SERVERS = dream opium vif trail httpcats cohttp-eio cohttp-lwt httpun-eio httpun-lwt httpaf tiny-httpd
 OCAML_FLAMBDA_SERVERS = dream-flambda httpcats-flambda cohttp-eio-flambda httpaf-flambda tiny-httpd-flambda
