@@ -34,6 +34,8 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `httpaf-flambda` | http/af built with Flambda enabled |
 | `tiny-httpd` | OCaml [tiny_httpd](https://github.com/c-cube/tiny-httpd) with system threads |
 | `tiny-httpd-flambda` | tiny_httpd built with Flambda enabled |
+| `tiny-httpd-moonpool` | tiny_httpd with a one-thread [Moonpool](https://github.com/c-cube/moonpool) work-stealing pool |
+| `tiny-httpd-moonpool-multicore` | tiny_httpd with a four-thread Moonpool work-stealing pool |
 
 Every server does the same thing: `GET /` → `200 text/plain "Hello, World!"`,
 listening on `$PORT` (default 8080), single process, no logging middleware. The

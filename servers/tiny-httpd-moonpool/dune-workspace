@@ -1,0 +1,5 @@
+(lang dune 3.24)
+
+(lock_dir
+ (path dune.lock)
+ (repositories :standard))

@@ -2,7 +2,7 @@
 
 BUN_SERVERS = elysia-bun bun-fetch-native hono-bun h3-bun node-http-bun express-bun fastify-bun
 NPM_SERVERS = node-http-scriptc
-OCAML_BASE_SERVERS = dream opium vif trail httpcats cohttp-eio cohttp-lwt httpun-eio httpun-lwt httpaf tiny-httpd
+OCAML_BASE_SERVERS = dream opium vif trail httpcats cohttp-eio cohttp-lwt httpun-eio httpun-lwt httpaf tiny-httpd tiny-httpd-moonpool
 OCAML_FLAMBDA_SERVERS = dream-flambda httpcats-flambda cohttp-eio-flambda httpaf-flambda tiny-httpd-flambda
 OCAML_MULTICORE_SERVERS = vif-multicore httpcats-multicore cohttp-eio-multicore httpun-eio-multicore
 OCAML_SERVERS = $(OCAML_BASE_SERVERS) $(OCAML_FLAMBDA_SERVERS) $(OCAML_MULTICORE_SERVERS)

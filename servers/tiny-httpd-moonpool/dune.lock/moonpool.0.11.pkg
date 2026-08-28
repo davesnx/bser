@@ -1,0 +1,19 @@
+(version 0.11)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (ocaml dune either thread-local-storage picos picos_std hmap)))
+
+(source
+ (fetch
+  (url
+   https://github.com/c-cube/moonpool/releases/download/v0.11/moonpool-0.11.tbz)
+  (checksum
+   sha512=7fa651570493ddd7c594eb46b76782610da6a6823e5178c2b20ceafe2f159649caedaac01e975428605de865d3dff9008a798090cec77c909477a86c04532709)))

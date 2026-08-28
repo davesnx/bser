@@ -1,0 +1,19 @@
+(version 0.6.0)
+
+(build
+ (all_platforms
+  ((action
+    (progn
+     (when %{pkg-self:dev} (run dune subst))
+     (run dune build -p %{pkg-self:name} -j %{jobs} @install))))))
+
+(depends
+ (all_platforms
+  (dune backoff thread-local-storage)))
+
+(source
+ (fetch
+  (url
+   https://github.com/ocaml-multicore/picos/releases/download/0.6.0/picos-0.6.0.tbz)
+  (checksum
+   sha512=ad24910c47ce614268c4268874bb918da7f8b5f03b3ad706bbf30323635262e94ddab6be24eaebbca706bfa82c0a517d4272b396459e020c185942125c9bdb7b)))

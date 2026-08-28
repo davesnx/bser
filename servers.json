@@ -210,6 +210,21 @@
       "cwd": "servers/tiny-httpd-flambda",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
       "run": "_build/default/main.exe"
+    },
+    {
+      "name": "tiny-httpd-moonpool",
+      "runtime": "OCaml + tiny_httpd (moonpool)",
+      "cwd": "servers/tiny-httpd-moonpool",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "tiny-httpd-moonpool-multicore",
+      "runtime": "OCaml + tiny_httpd (moonpool, multicore)",
+      "cwd": "servers/tiny-httpd-moonpool",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe",
+      "cpu_count": 4
     }
   ]
 }
