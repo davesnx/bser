@@ -14,6 +14,10 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `node-http-scriptc` | [scriptc](https://scriptc.dev) native `node:http` implementation |
 | `express-bun` | [Express](https://expressjs.com) on Bun |
 | `fastify-bun` | [Fastify](https://fastify.dev) on Bun |
+| `go-net-http` | Go standard library [`net/http`](https://pkg.go.dev/net/http) on one CPU |
+| `go-net-http-multicore` | Go `net/http` on four CPUs |
+| `go-fasthttp` | Go [fasthttp](https://github.com/valyala/fasthttp) on one CPU |
+| `go-fasthttp-multicore` | Go fasthttp on four CPUs |
 | `dream` | OCaml [Dream](https://aantron.github.io/dream) on Lwt |
 | `dream-flambda` | Dream built with Flambda enabled |
 | `opium` | OCaml [Opium](https://github.com/rgrinberg/opium) on http/af and Lwt |
@@ -70,6 +74,7 @@ For each server, `bench.py` reports:
   Reports identify TypeScript 7.0.2.
 - Node.js >= 24 and clang >= 15 for the `scriptc` compiler. The compiled server
   does not require Node.js. Zig is also supported with `SCRIPTC_CC=zigcc`.
+- Go 1.27 for the Go servers.
 - System libraries used by the OCaml dependency trees — dune builds the OCaml
   side but not C depexts (libev for lwt/dream, gmp for zarith, openssl for
   ssl/tls):
@@ -158,8 +163,8 @@ the next starts. The HTML report hides multicore results by default; use its
 - The harness reserves a server CPU pool large enough for the selected entries.
   Use `--server-cpu` to select its first logical CPU. One-CPU entries use only
   that CPU. The load generator uses a stable, disjoint CPU set.
-- Multicore results use each entry's declared OCaml domain count. httpcats and
-  Vif use eight; the other multicore entries use four. They are an explicit
+- Multicore results use each entry's declared CPU count. OCaml httpcats and Vif
+  use eight; the other multicore entries use four. They are an explicit
   scaling axis, not direct replacements for the one-CPU rankings. Logical CPU
   topology still matters; use separate physical cores for publishable results.
 

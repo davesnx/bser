@@ -22,6 +22,7 @@
       --primary: oklch(0.72 0.16 245);
       --accent: oklch(0.78 0.15 65);
       --bun: oklch(0.72 0.16 245);
+      --go: oklch(0.76 0.13 195);
       --ocaml: oklch(0.78 0.15 65);
       --ok: oklch(0.78 0.15 145);
       --focus: oklch(0.84 0.13 90);
@@ -135,8 +136,10 @@
     }
 
     .controls button[data-filter="bun"] { color: var(--bun); }
+    .controls button[data-filter="go"] { color: var(--go); }
     .controls button[data-filter="ocaml"] { color: var(--ocaml); }
     .controls button[data-filter="bun"][aria-pressed="true"] { border-color: var(--bun); }
+    .controls button[data-filter="go"][aria-pressed="true"] { border-color: var(--go); background: oklch(0.34 0.06 195); }
     .controls button[data-filter="ocaml"][aria-pressed="true"] { border-color: var(--ocaml); background: oklch(0.34 0.06 65); }
 
     .chart { display: grid; gap: 0.55rem; }
@@ -152,6 +155,7 @@
     .bar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bar-track { height: 0.72rem; background: var(--surface-strong); overflow: hidden; }
     .bar-fill { height: 100%; width: var(--size); background: var(--bun); transition: width 180ms ease-out; }
+    .bar-row[data-family="go"] .bar-fill { background: var(--go); }
     .bar-row[data-family="ocaml"] .bar-fill { background: var(--ocaml); }
     .bar-value { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
 
@@ -188,8 +192,10 @@
     .rank { color: var(--faint); }
     .family { color: var(--faint); }
     tbody tr[data-family="bun"] strong { color: var(--bun); }
+    tbody tr[data-family="go"] strong { color: var(--go); }
     tbody tr[data-family="ocaml"] strong { color: var(--ocaml); }
     .bun-text { color: var(--bun); }
+    .go-text { color: var(--go); }
     .ocaml-text { color: var(--ocaml); }
     .zero { color: var(--ok); }
 
@@ -259,6 +265,7 @@
           <div class="controls" aria-label="Chart controls">
             <button type="button" data-filter="all" aria-pressed="true">all</button>
             <button type="button" data-filter="bun" aria-pressed="false">bun/ts</button>
+            <button type="button" data-filter="go" aria-pressed="false">go</button>
             <button type="button" data-filter="ocaml" aria-pressed="false">ocaml</button>
             <button type="button" id="multicore-toggle" aria-pressed="false">show multicore</button>
             <button type="button" id="flambda-toggle" aria-pressed="true">hide Flambda</button>
@@ -303,6 +310,10 @@
             <h3 id="npm-version-title">npm</h3>
             <dl class="version-list" id="npm-dependency-rows"></dl>
           </section>
+          <section class="version-group" aria-labelledby="go-version-title">
+            <h3 id="go-version-title">Go</h3>
+            <dl class="version-list" id="go-dependency-rows"></dl>
+          </section>
           <section class="version-group" aria-labelledby="ocaml-version-title">
             <h3 id="ocaml-version-title">OCaml</h3>
             <dl class="version-list" id="ocaml-dependency-rows"></dl>
@@ -328,7 +339,7 @@
     const data = successful.map(item => ({
       name: item.name,
       runtime: item.runtime,
-      family: item.runtime.startsWith("OCaml") ? "ocaml" : "bun",
+      family: item.runtime.startsWith("OCaml") ? "ocaml" : item.runtime.startsWith("Go") ? "go" : "bun",
       serverCpus: item.serverCpus,
       multicore: item.multicore,
       flambda: item.flambda,
@@ -346,13 +357,13 @@
     const timestamp = environment.timestamp || "";
     const reportDate = timestamp.slice(0, 10);
     const isSmoke = config.duration <= 5;
-    const dependencies = payload.dependencies || { runtimes: [], npm: [], ocaml: [] };
+    const dependencies = payload.dependencies || { runtimes: [], npm: [], go: [], ocaml: [] };
     const multicoreCount = results.filter(item => item.multicore).length;
     const flambdaCount = results.filter(item => item.flambda).length;
     const serverPool = Array.isArray(config.server_cpus) ? config.server_cpus : fallbackServerCpus;
 
     document.title = `bser benchmark / ${timestamp}`;
-    document.querySelector("#lede").textContent = `A CPU-pinned ${isSmoke ? "smoke " : ""}comparison across ${results.length} Bun, TypeScript framework, and OCaml server implementations. Every successful server returned the same validated 13-byte response.`;
+    document.querySelector("#lede").textContent = `A CPU-pinned ${isSmoke ? "smoke " : ""}comparison across ${results.length} Bun, TypeScript, Go, and OCaml server implementations. Every successful server returned the same validated 13-byte response.`;
     const serverAllocation = multicoreCount
       ? `<li>single-core CPU <strong>${config.server_cpu}</strong></li><li>multicore pool <strong>${serverPool.join(", ")}</strong></li>`
       : `<li>server CPU <strong>${config.server_cpu}</strong></li>`;
@@ -378,6 +389,7 @@
     }
     renderVersionGroup(dependencies.runtimes, "#runtime-versions");
     renderVersionGroup(dependencies.npm, "#npm-dependency-rows", true);
+    renderVersionGroup(dependencies.go || [], "#go-dependency-rows", true);
     renderVersionGroup(dependencies.ocaml, "#ocaml-dependency-rows", true);
 
     const chart = document.querySelector("#chart");
@@ -422,11 +434,13 @@
         return;
       }
       const fastest = [...items].sort((a, b) => b.rps - a.rps)[0];
+      const fastestGo = [...items].filter(item => item.family === "go").sort((a, b) => b.rps - a.rps)[0];
       const fastestOcaml = [...items].filter(item => item.family === "ocaml").sort((a, b) => b.rps - a.rps)[0];
       const lowestP99 = [...items].sort((a, b) => a.p99 - b.p99)[0];
       const totalErrors = items.reduce((sum, item) => sum + item.errors, 0);
+      const goSummary = fastestGo ? ` <strong class="go-text">${fastestGo.name}</strong> was the fastest Go implementation at <strong>${Math.round(fastestGo.rps).toLocaleString("en-US")} req/s</strong>.` : "";
       const ocamlSummary = fastestOcaml ? ` <strong class="ocaml-text">${fastestOcaml.name}</strong> was the fastest OCaml implementation at <strong>${Math.round(fastestOcaml.rps).toLocaleString("en-US")} req/s</strong>.` : "";
-      summary.innerHTML = `<strong class="${fastest.family}-text">${fastest.name}</strong> led throughput at <strong>${Math.round(fastest.rps).toLocaleString("en-US")} req/s</strong>.${ocamlSummary} The lowest p99 was <strong>${lowestP99.p99.toFixed(3)} ms</strong>, from ${lowestP99.name}. <span class="status-ok">${items.length}/${visibleResults.length} completed with ${totalErrors} request errors${failed ? `; ${failed} failed` : ""}.</span>`;
+      summary.innerHTML = `<strong class="${fastest.family}-text">${fastest.name}</strong> led throughput at <strong>${Math.round(fastest.rps).toLocaleString("en-US")} req/s</strong>.${goSummary}${ocamlSummary} The lowest p99 was <strong>${lowestP99.p99.toFixed(3)} ms</strong>, from ${lowestP99.name}. <span class="status-ok">${items.length}/${visibleResults.length} completed with ${totalErrors} request errors${failed ? `; ${failed} failed` : ""}.</span>`;
     }
 
     function renderChart() {

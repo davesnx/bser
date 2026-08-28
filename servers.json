@@ -1,6 +1,7 @@
 {
   "runtime_versions": {
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "go": "1.27.0"
   },
   "defaults": {
     "duration": 30,
@@ -66,6 +67,36 @@
       "cwd": "servers/fastify-bun",
       "build": "bun install --frozen-lockfile",
       "run": "bun src/index.ts"
+    },
+    {
+      "name": "go-net-http",
+      "runtime": "Go + net/http",
+      "cwd": "servers/go-net-http",
+      "build": "mkdir -p _build && go build -trimpath -ldflags='-s -w' -o _build/server .",
+      "run": "_build/server"
+    },
+    {
+      "name": "go-net-http-multicore",
+      "runtime": "Go + net/http (multicore)",
+      "cwd": "servers/go-net-http",
+      "build": "mkdir -p _build && go build -trimpath -ldflags='-s -w' -o _build/server .",
+      "run": "_build/server",
+      "cpu_count": 4
+    },
+    {
+      "name": "go-fasthttp",
+      "runtime": "Go + fasthttp",
+      "cwd": "servers/go-fasthttp",
+      "build": "mkdir -p _build && go build -trimpath -ldflags='-s -w' -o _build/server .",
+      "run": "_build/server"
+    },
+    {
+      "name": "go-fasthttp-multicore",
+      "runtime": "Go + fasthttp (multicore)",
+      "cwd": "servers/go-fasthttp",
+      "build": "mkdir -p _build && go build -trimpath -ldflags='-s -w' -o _build/server .",
+      "run": "_build/server",
+      "cpu_count": 4
     },
     {
       "name": "dream",

@@ -74,6 +74,7 @@ def _dune_dependencies(project_path):
 
 def collect_dependency_versions():
     npm_packages = {}
+    go_packages = {}
     bun_versions = set()
     with open(os.path.join(HERE, "servers.json")) as manifest_file:
         runtime_versions = json.load(manifest_file).get("runtime_versions", {})
@@ -112,6 +113,13 @@ def collect_dependency_versions():
             for version in resolved.get(name, []):
                 _add_version(npm_packages, name, version)
 
+    for module_path in glob.glob(os.path.join(HERE, "servers", "*", "go.mod")):
+        with open(module_path) as module_file:
+            for name, version in re.findall(
+                r"^require\s+(\S+)\s+(v\S+)", module_file.read(), re.MULTILINE
+            ):
+                _add_version(go_packages, name, version)
+
     ocaml_packages = {}
     ocaml_versions = set()
     for project_path in glob.glob(os.path.join(HERE, "servers", "*", "dune-project")):
@@ -131,9 +139,11 @@ def collect_dependency_versions():
                 "name": "TypeScript",
                 "versions": [runtime_versions["typescript"]],
             },
+            {"name": "Go", "versions": [runtime_versions["go"]]},
             {"name": "OCaml", "versions": sorted(ocaml_versions)},
         ],
         "npm": _package_list(npm_packages),
+        "go": _package_list(go_packages),
         "ocaml": _package_list(ocaml_packages),
     }
 

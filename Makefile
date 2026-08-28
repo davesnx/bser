@@ -2,6 +2,7 @@
 
 BUN_SERVERS = elysia-bun bun-fetch-native hono-bun h3-bun node-http-bun express-bun fastify-bun
 NPM_SERVERS = node-http-scriptc
+GO_SERVERS = go-net-http go-fasthttp
 OCAML_BASE_SERVERS = dream opium vif trail httpcats cohttp-eio cohttp-lwt httpun-eio httpun-lwt httpaf tiny-httpd tiny-httpd-moonpool
 OCAML_FLAMBDA_SERVERS = dream-flambda httpcats-flambda cohttp-eio-flambda httpaf-flambda tiny-httpd-flambda
 OCAML_MULTICORE_SERVERS = vif-multicore httpcats-multicore cohttp-eio-multicore httpun-eio-multicore
@@ -15,7 +16,7 @@ first:
 	cd servers/elysia-bun && bun install --frozen-lockfile
 	python3 bench.py --servers elysia-bun,dream --duration 5 --warmup 2 --connections 32
 
-# Install/resolve dependencies for all servers (Bun packages + dune locks).
+# Install or resolve dependencies for all server projects.
 deps: lock
 	@for s in $(BUN_SERVERS); do \
 	  echo "== bun install: $$s"; \
@@ -24,6 +25,10 @@ deps: lock
 	@for s in $(NPM_SERVERS); do \
 	  echo "== npm ci: $$s"; \
 	  (cd servers/$$s && npm ci) || exit 1; \
+	done
+	@for s in $(GO_SERVERS); do \
+	  echo "== go mod download: $$s"; \
+	  (cd servers/$$s && go mod download) || exit 1; \
 	done
 
 # (Re)generate each OCaml server's own dune.lock. Each server is a standalone
@@ -45,6 +50,10 @@ build:
 	  echo "== npm build: $$s"; \
 	  (cd servers/$$s && npm ci && npm run build) || exit 1; \
 	done
+	@for s in $(GO_SERVERS); do \
+	  echo "== go build: $$s"; \
+	  (cd servers/$$s && mkdir -p _build && go build -trimpath -ldflags='-s -w' -o _build/server .) || exit 1; \
+	done
 	python3 patch-trail-lock.py
 	@for s in $(OCAML_SERVERS); do \
 	  echo "== dune build: $$s"; \
@@ -65,5 +74,6 @@ list:
 clean:
 	@for s in $(BUN_SERVERS); do rm -rf servers/$$s/node_modules; done
 	@for s in $(NPM_SERVERS); do rm -rf servers/$$s/node_modules servers/$$s/_build; done
+	@for s in $(GO_SERVERS); do rm -rf servers/$$s/_build; done
 	rm -rf results
 	@for s in $(OCAML_SERVERS); do rm -rf servers/$$s/_build; done
