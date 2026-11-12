@@ -12,7 +12,7 @@ OCAML_SERVERS = $(OCAML_BASE_SERVERS) $(OCAML_FLAMBDA_SERVERS) $(OCAML_MULTICORE
 # in a short run next to the Bun baseline. Needs a recent dune (>= 3.24) with
 # package management: curl -fsSL https://get.dune.build/install | sh
 first:
-	cd servers/dream && ([ -d dune.lock ] || dune pkg lock) && dune build ./main.exe
+	cd servers/dream && ([ -d dune.lock ] || dune pkg lock --root .) && dune build --root . ./main.exe
 	cd servers/elysia-bun && bun install --frozen-lockfile
 	python3 bench.py --servers elysia-bun,dream --duration 5 --warmup 2 --connections 32
 
@@ -36,7 +36,7 @@ deps: lock
 lock:
 	@for s in $(OCAML_SERVERS); do \
 	  echo "== dune pkg lock: $$s"; \
-	  (cd servers/$$s && dune pkg lock) || exit 1; \
+	  (cd servers/$$s && dune pkg lock --root .) || exit 1; \
 	done
 	python3 patch-trail-lock.py
 
@@ -57,7 +57,7 @@ build:
 	python3 patch-trail-lock.py
 	@for s in $(OCAML_SERVERS); do \
 	  echo "== dune build: $$s"; \
-	  (cd servers/$$s && ([ -d dune.lock ] || dune pkg lock) && dune build ./main.exe) || exit 1; \
+	  (cd servers/$$s && ([ -d dune.lock ] || dune pkg lock --root .) && dune build --root . ./main.exe) || exit 1; \
 	done
 
 # Full benchmark run with the defaults from servers.json.
