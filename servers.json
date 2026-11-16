@@ -222,6 +222,14 @@
       "run": "_build/default/main.exe"
     },
     {
+      "name": "ache-eio-multicore",
+      "runtime": "OCaml + ache (eio, multicore)",
+      "cwd": "servers/ache-eio-multicore",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe",
+      "cpu_count": 4
+    },
+    {
       "name": "ache-lwt",
       "runtime": "OCaml + ache (lwt)",
       "cwd": "servers/ache-lwt",
@@ -234,6 +242,14 @@
       "cwd": "servers/ache-miou",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
       "run": "_build/default/main.exe"
+    },
+    {
+      "name": "ache-miou-multicore",
+      "runtime": "OCaml + ache (miou, multicore)",
+      "cwd": "servers/ache-miou-multicore",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe",
+      "cpu_count": 4
     },
     {
       "name": "httpaf",

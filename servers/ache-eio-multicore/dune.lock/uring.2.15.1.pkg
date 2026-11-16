@@ -1,0 +1,40 @@
+(version 2.15.1)
+
+(build
+ (choice
+  ((((arch x86_64)
+     (os linux))
+    ((arch arm64)
+     (os linux)))
+   ((action
+     (progn
+      (when
+       %{pkg-self:dev}
+       (run dune subst))
+      (run dune build -p %{pkg-self:name} -j %{jobs} @install)))))))
+
+(depends
+ (choice
+  ((((arch x86_64)
+     (os linux))
+    ((arch arm64)
+     (os linux)))
+   (dune cstruct ocaml dune-configurator fmt optint))))
+
+(depexts
+ ((linux-headers)
+  (= %{os_distribution} alpine)))
+
+(source
+ (fetch
+  (url
+   https://github.com/ocaml-multicore/ocaml-uring/releases/download/v2.15.1/uring-2.15.1.tbz)
+  (checksum
+   sha512=077b848b83960326f7a0e5dff74a092c3ad2ddfe890036859260eb96640f2b85f57801c9d8d62a14a22fad87c3105a3c8bef36a42fe4e7374093c569f1b82321)))
+
+(enabled_on_platforms
+ (only
+  ((arch x86_64)
+   (os linux))
+  ((arch arm64)
+   (os linux))))

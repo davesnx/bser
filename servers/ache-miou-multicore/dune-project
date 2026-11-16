@@ -1,0 +1,24 @@
+(lang dune 3.20)
+
+(name bench_ache_miou_multicore)
+
+(pin
+ (url "git+https://github.com/davesnx/ache.git#bc856956f7cdaa530875ab523c582ae2da5a72e2")
+ (package
+  (name ache)))
+
+(pin
+ (url "git+https://github.com/davesnx/ache.git#bc856956f7cdaa530875ab523c582ae2da5a72e2")
+ (package
+  (name ache-miou)))
+
+(package
+ (name bench_ache_miou_multicore)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: ache (miou, multicore)")
+ (depends
+  (ocaml
+   (= 5.5.0))
+  ache
+  ache-miou
+  miou))

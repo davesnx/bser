@@ -35,8 +35,10 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `httpun-eio-multicore` | httpun Eio with four domains |
 | `httpun-lwt` | OCaml httpun on Lwt |
 | `ache-eio` | OCaml [ache](https://github.com/davesnx/ache) on Eio |
+| `ache-eio-multicore` | ache Eio with four domains |
 | `ache-lwt` | OCaml ache on Lwt |
 | `ache-miou` | OCaml ache on Miou |
+| `ache-miou-multicore` | ache Miou with four domains |
 | `httpaf` | OCaml [http/af](https://github.com/inhabitedtype/httpaf) on Lwt |
 | `httpaf-flambda` | http/af built with Flambda enabled |
 | `tiny-httpd` | OCaml [tiny_httpd](https://github.com/c-cube/tiny-httpd) with system threads |
