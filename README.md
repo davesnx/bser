@@ -34,6 +34,9 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `httpun-eio` | OCaml [httpun](https://github.com/anmonteiro/httpun) on Eio |
 | `httpun-eio-multicore` | httpun Eio with four domains |
 | `httpun-lwt` | OCaml httpun on Lwt |
+| `ache-eio` | OCaml [ache](https://github.com/davesnx/ache) on Eio |
+| `ache-lwt` | OCaml ache on Lwt |
+| `ache-miou` | OCaml ache on Miou |
 | `httpaf` | OCaml [http/af](https://github.com/inhabitedtype/httpaf) on Lwt |
 | `httpaf-flambda` | http/af built with Flambda enabled |
 | `tiny-httpd` | OCaml [tiny_httpd](https://github.com/c-cube/tiny-httpd) with system threads |
@@ -174,7 +177,8 @@ the next starts. The HTML report hides multicore results by default; use its
   by `make smoke`.
 - Trail pins Riot commit `310a486` because the latest Riot release restricts
   OCaml to versions older than 5.3. `patch-trail-lock.py` applies three narrow
-  OCaml 5.5 compatibility fixes to the archived Config, Riot, and Nomad sources.
+  OCaml 5.5 compatibility fixes to the archived Config, Riot, and Nomad sources,
+  and casts a pointer in Gluon's epoll stub that GCC 14 rejects.
 - H3 2 is currently a release candidate; its lockfile fixes the tested version.
 
 ## Adding a server

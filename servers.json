@@ -215,6 +215,27 @@
       "run": "_build/default/main.exe"
     },
     {
+      "name": "ache-eio",
+      "runtime": "OCaml + ache (eio)",
+      "cwd": "servers/ache-eio",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "ache-lwt",
+      "runtime": "OCaml + ache (lwt)",
+      "cwd": "servers/ache-lwt",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "ache-miou",
+      "runtime": "OCaml + ache (miou)",
+      "cwd": "servers/ache-miou",
+      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
       "name": "httpaf",
       "runtime": "OCaml + http/af (lwt)",
       "cwd": "servers/httpaf",

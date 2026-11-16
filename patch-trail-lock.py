@@ -59,6 +59,17 @@ def main():
         "module Nomad_config = Config",
     )
 
+    replace_once(
+        "gluon.0.0.9.pkg",
+        """    (progn
+     (when %{pkg-self:dev} (run dune subst))""",
+        """    (progn
+     (system
+      \"python3 -c 'from pathlib import Path; p = Path(\\\"gluon/sys/unix/gluon_unix_epoll.c\\\"); s = p.read_text(); old = \\\"event.data.u64 = ocaml_value;\\\"; assert s.count(old) == 1; p.write_text(s.replace(old, \\\"event.data.u64 = (uint64_t)(intptr_t)ocaml_value;\\\"))'\")
+     (when %{pkg-self:dev} (run dune subst))""",
+        "(uint64_t)(intptr_t)ocaml_value",
+    )
+
 
 if __name__ == "__main__":
     main()

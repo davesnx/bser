@@ -1,0 +1,24 @@
+(lang dune 3.20)
+
+(name bench_ache_miou)
+
+(pin
+ (url "git+https://github.com/davesnx/ache.git#fa5dcd5faf100c176c0e310340bd8e9d3cc8f3d7")
+ (package
+  (name ache)))
+
+(pin
+ (url "git+https://github.com/davesnx/ache.git#fa5dcd5faf100c176c0e310340bd8e9d3cc8f3d7")
+ (package
+  (name ache-miou)))
+
+(package
+ (name bench_ache_miou)
+ (allow_empty)
+ (synopsis "Hello-world benchmark server: ache (miou)")
+ (depends
+  (ocaml
+   (= 5.5.0))
+  ache
+  ache-miou
+  miou))
