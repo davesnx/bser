@@ -3,12 +3,12 @@
 (name bench_ache_miou)
 
 (pin
- (url "git+https://github.com/davesnx/ache.git#bc856956f7cdaa530875ab523c582ae2da5a72e2")
+ (url "git+https://github.com/davesnx/ache.git#722caa5ca013ebeda78fea77e7cce2de1cd10dfb")
  (package
   (name ache)))
 
 (pin
- (url "git+https://github.com/davesnx/ache.git#bc856956f7cdaa530875ab523c582ae2da5a72e2")
+ (url "git+https://github.com/davesnx/ache.git#722caa5ca013ebeda78fea77e7cce2de1cd10dfb")
  (package
   (name ache-miou)))
 
