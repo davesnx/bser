@@ -4,7 +4,7 @@ BUN_SERVERS = elysia-bun bun-fetch-native hono-bun h3-bun node-http-bun express-
 NPM_SERVERS = node-http-scriptc
 GO_SERVERS = go-net-http go-fasthttp
 OCAML_BASE_SERVERS = dream opium vif trail httpcats cohttp-eio cohttp-lwt httpun-eio httpun-lwt ache-eio ache-lwt ache-miou httpaf tiny-httpd tiny-httpd-moonpool
-OCAML_FLAMBDA_SERVERS = dream-flambda httpcats-flambda cohttp-eio-flambda httpaf-flambda tiny-httpd-flambda
+OCAML_FLAMBDA_SERVERS = dream-flambda httpcats-flambda cohttp-eio-flambda ache-eio-flambda ache-lwt-flambda ache-miou-flambda httpaf-flambda tiny-httpd-flambda
 OCAML_MULTICORE_SERVERS = vif-multicore httpcats-multicore cohttp-eio-multicore httpun-eio-multicore ache-eio-multicore ache-miou-multicore
 OCAML_SERVERS = $(OCAML_BASE_SERVERS) $(OCAML_FLAMBDA_SERVERS) $(OCAML_MULTICORE_SERVERS)
 
@@ -39,6 +39,7 @@ lock:
 	  (cd servers/$$s && dune pkg lock --root .) || exit 1; \
 	done
 	python3 patch-trail-lock.py
+	python3 patch-flambda-lock.py
 
 # Build every server without running the benchmark.
 build:
@@ -55,6 +56,7 @@ build:
 	  (cd servers/$$s && mkdir -p _build && go build -trimpath -ldflags='-s -w' -o _build/server .) || exit 1; \
 	done
 	python3 patch-trail-lock.py
+	python3 patch-flambda-lock.py
 	@for s in $(OCAML_SERVERS); do \
 	  echo "== dune build: $$s"; \
 	  (cd servers/$$s && ([ -d dune.lock ] || dune pkg lock --root .) && dune build --root . ./main.exe) || exit 1; \

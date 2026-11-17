@@ -1,0 +1,14 @@
+(version dev)
+
+(build
+ (all_platforms ((dune))))
+
+(depends
+ (all_platforms (ocaml)))
+
+(source
+ (fetch
+  (url
+   git+https://github.com/davesnx/ache.git#722caa5ca013ebeda78fea77e7cce2de1cd10dfb)))
+
+(dev)

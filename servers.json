@@ -109,7 +109,7 @@
       "name": "dream-flambda",
       "runtime": "OCaml + Dream (lwt, Flambda)",
       "cwd": "servers/dream-flambda",
-      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "build": "([ -d dune.lock ] || dune pkg lock) && python3 ../../patch-flambda-lock.py && dune build ./main.exe",
       "run": "_build/default/main.exe"
     },
     {
@@ -152,7 +152,7 @@
       "name": "httpcats-flambda",
       "runtime": "OCaml + httpcats (miou, Flambda)",
       "cwd": "servers/httpcats-flambda",
-      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "build": "([ -d dune.lock ] || dune pkg lock) && python3 ../../patch-flambda-lock.py && dune build ./main.exe",
       "run": "_build/default/main.exe"
     },
     {
@@ -174,7 +174,7 @@
       "name": "cohttp-eio-flambda",
       "runtime": "OCaml + Cohttp (eio, Flambda)",
       "cwd": "servers/cohttp-eio-flambda",
-      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "build": "([ -d dune.lock ] || dune pkg lock) && python3 ../../patch-flambda-lock.py && dune build ./main.exe",
       "run": "_build/default/main.exe"
     },
     {
@@ -222,6 +222,13 @@
       "run": "_build/default/main.exe"
     },
     {
+      "name": "ache-eio-flambda",
+      "runtime": "OCaml + ache (eio, Flambda)",
+      "cwd": "servers/ache-eio-flambda",
+      "build": "([ -d dune.lock ] || dune pkg lock) && python3 ../../patch-flambda-lock.py && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
       "name": "ache-eio-multicore",
       "runtime": "OCaml + ache (eio, multicore)",
       "cwd": "servers/ache-eio-multicore",
@@ -237,10 +244,24 @@
       "run": "_build/default/main.exe"
     },
     {
+      "name": "ache-lwt-flambda",
+      "runtime": "OCaml + ache (lwt, Flambda)",
+      "cwd": "servers/ache-lwt-flambda",
+      "build": "([ -d dune.lock ] || dune pkg lock) && python3 ../../patch-flambda-lock.py && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
       "name": "ache-miou",
       "runtime": "OCaml + ache (miou)",
       "cwd": "servers/ache-miou",
       "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "run": "_build/default/main.exe"
+    },
+    {
+      "name": "ache-miou-flambda",
+      "runtime": "OCaml + ache (miou, Flambda)",
+      "cwd": "servers/ache-miou-flambda",
+      "build": "([ -d dune.lock ] || dune pkg lock) && python3 ../../patch-flambda-lock.py && dune build ./main.exe",
       "run": "_build/default/main.exe"
     },
     {
@@ -262,7 +283,7 @@
       "name": "httpaf-flambda",
       "runtime": "OCaml + http/af (lwt, Flambda)",
       "cwd": "servers/httpaf-flambda",
-      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "build": "([ -d dune.lock ] || dune pkg lock) && python3 ../../patch-flambda-lock.py && dune build ./main.exe",
       "run": "_build/default/main.exe"
     },
     {
@@ -276,7 +297,7 @@
       "name": "tiny-httpd-flambda",
       "runtime": "OCaml + tiny_httpd (threads, Flambda)",
       "cwd": "servers/tiny-httpd-flambda",
-      "build": "[ -d dune.lock ] || dune pkg lock && dune build ./main.exe",
+      "build": "([ -d dune.lock ] || dune pkg lock) && python3 ../../patch-flambda-lock.py && dune build ./main.exe",
       "run": "_build/default/main.exe"
     },
     {

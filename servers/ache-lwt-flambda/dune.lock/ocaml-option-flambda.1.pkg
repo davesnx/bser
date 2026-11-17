@@ -1,0 +1,4 @@
+(version 1)
+
+(exported_env
+ (= OCAMLPARAM "_,O3=1"))

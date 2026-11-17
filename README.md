@@ -35,9 +35,12 @@ One project to compare minimal "Hello, World!" HTTP servers across runtimes:
 | `httpun-eio-multicore` | httpun Eio with four domains |
 | `httpun-lwt` | OCaml httpun on Lwt |
 | `ache-eio` | OCaml [ache](https://github.com/davesnx/ache) on Eio |
+| `ache-eio-flambda` | ache Eio built with Flambda enabled |
 | `ache-eio-multicore` | ache Eio with four domains |
 | `ache-lwt` | OCaml ache on Lwt |
+| `ache-lwt-flambda` | ache Lwt built with Flambda enabled |
 | `ache-miou` | OCaml ache on Miou |
+| `ache-miou-flambda` | ache Miou built with Flambda enabled |
 | `ache-miou-multicore` | ache Miou with four domains |
 | `httpaf` | OCaml [http/af](https://github.com/inhabitedtype/httpaf) on Lwt |
 | `httpaf-flambda` | http/af built with Flambda enabled |
@@ -108,7 +111,10 @@ For each server, `bench.py` reports:
 
   Every OCaml server is locked to OCaml 5.5.0. Flambda projects also lock
   `ocaml-option-flambda`; their private compiler and dependencies are rebuilt
-  with Flambda enabled.
+  with Flambda enabled. `patch-flambda-lock.py` makes that package export
+  `OCAMLPARAM=_,O3=1`, so every locked dependency is compiled with `-O3`, and
+  each Flambda `main.ml` passes `-O3` itself. The compiler's own standard
+  library keeps the default level.
 
 - A load generator, one of (checked in this order):
   - [`oha`](https://github.com/hatoo/oha) — recommended (`cargo install oha`)

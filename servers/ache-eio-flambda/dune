@@ -1,0 +1,4 @@
+(executable
+ (name main)
+ (ocamlopt_flags (:standard -O3))
+ (libraries ache ache-eio eio eio_main))
