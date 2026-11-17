@@ -3,12 +3,12 @@
 (name bench_ache_lwt)
 
 (pin
- (url "git+https://github.com/davesnx/ache.git#722caa5ca013ebeda78fea77e7cce2de1cd10dfb")
+ (url "git+https://github.com/davesnx/ache.git#715de7abfd33df5abd0a42d23affa116d1c4761b")
  (package
   (name ache)))
 
 (pin
- (url "git+https://github.com/davesnx/ache.git#722caa5ca013ebeda78fea77e7cce2de1cd10dfb")
+ (url "git+https://github.com/davesnx/ache.git#715de7abfd33df5abd0a42d23affa116d1c4761b")
  (package
   (name ache-lwt)))
 

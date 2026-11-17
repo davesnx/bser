@@ -12,7 +12,7 @@ let response =
          ])
     `OK
 
-let request_handler _ reqd = Reqd.respond_with_string reqd response text
+let request_handler _ reqd = Request_descriptor.respond_with_string reqd response text
 
 let error_handler _ ?request:_ _ start_response =
   Body.Writer.close (start_response Headers.empty)
